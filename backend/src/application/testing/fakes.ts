@@ -84,6 +84,15 @@ export class AgendamentosFake implements AgendamentosRepository {
     return criado;
   }
 
+  obter(id: number): Agendamento | undefined {
+    return this.itens.find((a) => a.id === id);
+  }
+
+  remover(id: number): void {
+    const indice = this.itens.findIndex((a) => a.id === id);
+    if (indice >= 0) this.itens.splice(indice, 1);
+  }
+
   listarPorPeriodo(
     medicoId: number | undefined,
     desde: string,

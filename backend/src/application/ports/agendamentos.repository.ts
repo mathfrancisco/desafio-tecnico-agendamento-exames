@@ -14,4 +14,7 @@ export interface AgendamentosRepository {
     desde: string,
     ate: string,
   ): Agendamento[];
+  obter(id: number): Agendamento | undefined;
+  /** Apaga o registro (PR9); id inexistente é ignorado. */
+  remover(id: number): void;
 }

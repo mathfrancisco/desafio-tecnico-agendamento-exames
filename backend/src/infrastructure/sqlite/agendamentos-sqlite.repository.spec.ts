@@ -106,4 +106,21 @@ describe('AgendamentosSqliteRepository', () => {
     expect(datas(1)).toEqual(['2026-11-01', '2026-11-30']);
     expect(datas(3)).toEqual([]);
   });
+
+  it('obter devolve o agendamento ou undefined', () => {
+    const criado = repository.inserirSeLivre(novo({}));
+    expect(repository.obter(criado.id)).toEqual(criado);
+    expect(repository.obter(999)).toBeUndefined();
+  });
+
+  it('remover apaga o registro e libera o horário', () => {
+    const criado = repository.inserirSeLivre(novo({}));
+    repository.remover(criado.id);
+    expect(repository.obter(criado.id)).toBeUndefined();
+    expect(() => repository.inserirSeLivre(novo({}))).not.toThrow();
+  });
+
+  it('remover id inexistente não falha', () => {
+    expect(() => repository.remover(999)).not.toThrow();
+  });
 });

@@ -5,9 +5,11 @@ import { CLOCK } from './application/ports/clock';
 import { EXAMES_REPOSITORY } from './application/ports/exames.repository';
 import { MEDICOS_REPOSITORY } from './application/ports/medicos.repository';
 import { BuscarExames } from './application/use-cases/buscar-exames';
+import { CancelarAgendamento } from './application/use-cases/cancelar-agendamento';
 import { ConsultarDisponibilidade } from './application/use-cases/consultar-disponibilidade';
 import { ConsultarHorarios } from './application/use-cases/consultar-horarios';
 import { CriarAgendamento } from './application/use-cases/criar-agendamento';
+import { ListarAgendamentos } from './application/use-cases/listar-agendamentos';
 import { ListarMedicos } from './application/use-cases/listar-medicos';
 import { config } from './config';
 import { AgendamentosController } from './http/controllers/agendamentos.controller';
@@ -62,6 +64,11 @@ function casoDeUso<T>(
       AGENDAMENTOS_REPOSITORY,
       CLOCK,
     ]),
+    casoDeUso(ListarAgendamentos, [
+      MEDICOS_REPOSITORY,
+      AGENDAMENTOS_REPOSITORY,
+    ]),
+    casoDeUso(CancelarAgendamento, [AGENDAMENTOS_REPOSITORY, CLOCK]),
     casoDeUso(CriarAgendamento, [
       MEDICOS_REPOSITORY,
       EXAMES_REPOSITORY,
