@@ -1,4 +1,9 @@
-import { gerarHorarios, Intervalo } from './gerar-horarios';
+import {
+  gerarHorarios,
+  horariosLivresDoDia,
+  Intervalo,
+} from './gerar-horarios';
+import type { Medico } from './medico';
 
 const MANHA: Intervalo = { inicio: '08:00', fim: '12:00' };
 const inicios = (horarios: Intervalo[]) => horarios.map((h) => h.inicio);
@@ -115,5 +120,49 @@ describe('gerarHorarios', () => {
 
   it('sem turnos devolve lista vazia', () => {
     expect(gerarHorarios([], 30, [])).toEqual([]);
+  });
+});
+
+describe('horariosLivresDoDia', () => {
+  const medico: Medico = {
+    id: 1,
+    nome: 'Dra. Helena Marques',
+    crm: 'CRM-MG 11111',
+    turnos: [{ dia: 'TER', inicio: '08:00', fim: '12:00' }],
+  };
+  // 2026-11-03 é terça-feira.
+  const livres = (agora: string, ocupados: Intervalo[] = []) =>
+    inicios(
+      horariosLivresDoDia(
+        medico,
+        '2026-11-03',
+        40,
+        ocupados.map((o) => ({
+          inicio: `2026-11-03T${o.inicio}`,
+          fim: `2026-11-03T${o.fim}`,
+        })),
+        agora,
+      ),
+    );
+
+  it('dia futuro devolve a grade completa', () => {
+    expect(livres('2026-11-02T10:00')).toHaveLength(6);
+  });
+
+  it('remove o horário ocupado', () => {
+    expect(
+      livres('2026-11-02T10:00', [{ inicio: '09:20', fim: '10:00' }]),
+    ).not.toContain('09:20');
+  });
+
+  it('no próprio dia remove o que já começou, inclusive o que começa agora', () => {
+    expect(livres('2026-11-03T09:20')).toEqual(['10:00', '10:40', '11:20']);
+  });
+
+  it('dia passado e dia sem turno devolvem vazio', () => {
+    expect(livres('2026-11-04T07:00')).toEqual([]);
+    expect(
+      horariosLivresDoDia(medico, '2026-11-04', 40, [], '2026-11-02T10:00'),
+    ).toEqual([]);
   });
 });

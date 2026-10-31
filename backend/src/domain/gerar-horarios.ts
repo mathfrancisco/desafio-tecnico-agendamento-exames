@@ -1,3 +1,5 @@
+import type { Agendamento } from './agendamento';
+import { Medico, turnosDoDia } from './medico';
 import { deMinutos, paraMinutos } from './tempo';
 
 /** Intervalo dentro de um dia, em HH:MM. O fim é exclusivo. */
@@ -40,4 +42,26 @@ export function gerarHorarios(
     }
   }
   return horarios;
+}
+
+/**
+ * Horários livres do médico numa data (RN2, RN4, RN5). Datas e horas no formato
+ * fixo comparam como texto: dia passado some e, hoje, some o que já começou.
+ */
+export function horariosLivresDoDia(
+  medico: Medico,
+  data: string,
+  duracaoMinutos: number,
+  agendamentosDoDia: Pick<Agendamento, 'inicio' | 'fim'>[],
+  agora: string,
+): Intervalo[] {
+  const ocupados = agendamentosDoDia.map((a) => ({
+    inicio: a.inicio.slice(11),
+    fim: a.fim.slice(11),
+  }));
+  return gerarHorarios(
+    turnosDoDia(medico, data),
+    duracaoMinutos,
+    ocupados,
+  ).filter((h) => `${data}T${h.inicio}` > agora);
 }
