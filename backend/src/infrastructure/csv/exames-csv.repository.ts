@@ -1,7 +1,6 @@
-import { Injectable } from '@nestjs/common';
 import { readFileSync } from 'node:fs';
-import { config } from '../config';
-import type { Exame } from '../domain/exame';
+import type { ExamesRepository } from '../../application/ports/exames.repository';
+import type { Exame } from '../../domain/exame';
 
 /** Lê o CSV `id,nome,duracao_minutos` (com cabeçalho). Falha na subida se uma linha for inválida. */
 export function parseExamesCsv(texto: string): Exame[] {
@@ -29,11 +28,12 @@ export function parseExamesCsv(texto: string): Exame[] {
   });
 }
 
-@Injectable()
-export class ExamesRepository {
-  private readonly exames = parseExamesCsv(
-    readFileSync(config().examesCsvPath, 'utf8'),
-  );
+export class ExamesCsvRepository implements ExamesRepository {
+  private readonly exames: Exame[];
+
+  constructor(caminho: string) {
+    this.exames = parseExamesCsv(readFileSync(caminho, 'utf8'));
+  }
 
   listar(): Exame[] {
     return this.exames;

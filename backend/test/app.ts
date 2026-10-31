@@ -3,8 +3,8 @@ import { Test } from '@nestjs/testing';
 import request from 'supertest';
 import type { App } from 'supertest/types';
 import { AppModule } from '../src/app.module';
-import { configurarApp } from '../src/app.setup';
-import { CLOCK } from '../src/shared/clock';
+import { configurarApp } from '../src/http/app.setup';
+import { CLOCK } from '../src/application/ports/clock';
 
 export const http = (app: INestApplication) =>
   request(app.getHttpServer() as App);

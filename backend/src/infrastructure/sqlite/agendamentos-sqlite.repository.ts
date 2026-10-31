@@ -1,8 +1,7 @@
-import { Inject, Injectable } from '@nestjs/common';
 import type Database from 'better-sqlite3';
-import { DATABASE } from '../database/database.module';
-import { Agendamento, NovoAgendamento } from '../domain/agendamento';
-import { ConflitoError } from '../domain/erros';
+import type { AgendamentosRepository } from '../../application/ports/agendamentos.repository';
+import type { Agendamento, NovoAgendamento } from '../../domain/agendamento';
+import { ConflitoError } from '../../domain/erros';
 
 interface Linha {
   id: number;
@@ -14,18 +13,19 @@ interface Linha {
   criado_em: string;
 }
 
-@Injectable()
-export class AgendamentosRepository {
+export class AgendamentosSqliteRepository implements AgendamentosRepository {
   private readonly sobreposto: Database.Statement<[number, string, string]>;
   private readonly inserir: Database.Statement<
     [string, number, number, string, string, string]
   >;
-  private readonly doDia: Database.Statement<[number, string, string]>;
+  private readonly doPeriodo: Database.Statement<
+    [{ medicoId: number | null; desde: string; ate: string }]
+  >;
   private readonly inserirAtomico: Database.Transaction<
     (novo: NovoAgendamento) => Agendamento
   >;
 
-  constructor(@Inject(DATABASE) db: Database.Database) {
+  constructor(db: Database.Database) {
     this.sobreposto = db.prepare(
       `SELECT 1 FROM agendamentos
         WHERE medico_id = ? AND inicio < ? AND fim > ?
@@ -36,9 +36,10 @@ export class AgendamentosRepository {
          (paciente_nome, exame_id, medico_id, inicio, fim, criado_em)
        VALUES (?, ?, ?, ?, ?, ?)`,
     );
-    this.doDia = db.prepare(
+    this.doPeriodo = db.prepare(
       `SELECT * FROM agendamentos
-        WHERE medico_id = ? AND inicio >= ? AND inicio <= ?
+        WHERE inicio >= @desde AND inicio <= @ate
+          AND (@medicoId IS NULL OR medico_id = @medicoId)
         ORDER BY inicio`,
     );
 
@@ -65,13 +66,16 @@ export class AgendamentosRepository {
     return this.inserirAtomico.immediate(novo);
   }
 
-  /** Agendamentos do médico na data (YYYY-MM-DD), em ordem de início. */
-  listarDoDia(medicoId: number, data: string): Agendamento[] {
-    const linhas = this.doDia.all(
-      medicoId,
-      `${data}T00:00`,
-      `${data}T23:59`,
-    ) as Linha[];
+  listarPorPeriodo(
+    medicoId: number | undefined,
+    desde: string,
+    ate: string,
+  ): Agendamento[] {
+    const linhas = this.doPeriodo.all({
+      medicoId: medicoId ?? null,
+      desde: `${desde}T00:00`,
+      ate: `${ate}T23:59`,
+    }) as Linha[];
     return linhas.map((l) => ({
       id: l.id,
       pacienteNome: l.paciente_nome,

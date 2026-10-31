@@ -1,5 +1,5 @@
-import type { Medico, Turno } from '../domain/medico';
-import type { DiaSemana } from '../domain/tempo';
+import type { Medico, Turno } from '../../domain/medico';
+import type { DiaSemana } from '../../domain/tempo';
 
 const ORDEM_DIAS: DiaSemana[] = [
   'SEG',

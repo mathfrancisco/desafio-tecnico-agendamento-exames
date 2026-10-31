@@ -1,4 +1,5 @@
-import { ExamesRepository, parseExamesCsv } from './exames.repository';
+import { config } from '../../config';
+import { ExamesCsvRepository, parseExamesCsv } from './exames-csv.repository';
 
 describe('parseExamesCsv', () => {
   it('ignora o cabeçalho, linhas em branco e CRLF', () => {
@@ -17,9 +18,9 @@ describe('parseExamesCsv', () => {
   });
 });
 
-describe('ExamesRepository', () => {
+describe('ExamesCsvRepository', () => {
   it('carrega os 30 exames de dados/exames.csv', () => {
-    const repository = new ExamesRepository();
+    const repository = new ExamesCsvRepository(config().examesCsvPath);
     expect(repository.listar()).toHaveLength(30);
     expect(repository.buscarPorId(20)).toEqual({
       id: 20,

@@ -1,11 +1,5 @@
-import { FUSO_CLINICA } from '../config';
-
-export const CLOCK = Symbol('CLOCK');
-
-export interface Clock {
-  /** Data e hora atuais na clínica, no formato YYYY-MM-DDTHH:mm. */
-  agoraLocal(): string;
-}
+import type { Clock } from '../../application/ports/clock';
+import { FUSO_CLINICA } from '../../config';
 
 export class SystemClock implements Clock {
   private readonly formato = new Intl.DateTimeFormat('en-CA', {

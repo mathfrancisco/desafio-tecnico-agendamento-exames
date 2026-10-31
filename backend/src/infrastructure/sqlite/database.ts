@@ -1,6 +1,4 @@
-import { Inject, Module, OnModuleDestroy } from '@nestjs/common';
 import Database from 'better-sqlite3';
-import { config } from '../config';
 
 export const DATABASE = Symbol('DATABASE');
 
@@ -23,18 +21,4 @@ export function criarBanco(caminho: string): Database.Database {
   const db = new Database(caminho);
   db.exec(SCHEMA);
   return db;
-}
-
-@Module({
-  providers: [
-    { provide: DATABASE, useFactory: () => criarBanco(config().dbPath) },
-  ],
-  exports: [DATABASE],
-})
-export class DatabaseModule implements OnModuleDestroy {
-  constructor(@Inject(DATABASE) private readonly db: Database.Database) {}
-
-  onModuleDestroy() {
-    this.db.close();
-  }
 }

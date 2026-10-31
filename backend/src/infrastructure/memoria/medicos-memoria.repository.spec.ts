@@ -1,18 +1,16 @@
-import { NaoEncontradoError } from '../domain/erros';
-import { MedicosRepository } from './medicos.repository';
-import { MedicosService } from './medicos.service';
+import { MedicosMemoriaRepository } from './medicos-memoria.repository';
+
+const repository = new MedicosMemoriaRepository();
 
 const resumo = (id: number) =>
-  service
-    .obter(id)
-    .turnos.map((t) => `${t.dia} ${t.inicio}-${t.fim}`)
+  repository
+    .buscarPorId(id)
+    ?.turnos.map((t) => `${t.dia} ${t.inicio}-${t.fim}`)
     .join(', ');
 
-const service = new MedicosService(new MedicosRepository());
-
-describe('MedicosService', () => {
+describe('MedicosMemoriaRepository', () => {
   it('lista os 5 médicos', () => {
-    expect(service.listar().map((m) => [m.id, m.nome, m.crm])).toEqual([
+    expect(repository.listar().map((m) => [m.id, m.nome, m.crm])).toEqual([
       [1, 'Dra. Helena Marques', 'CRM-MG 11111'],
       [2, 'Dr. Rafael Teixeira', 'CRM-MG 22222'],
       [3, 'Dra. Beatriz Nogueira', 'CRM-MG 33333'],
@@ -56,7 +54,7 @@ describe('MedicosService', () => {
     );
   });
 
-  it('obter lança NaoEncontradoError para id inexistente', () => {
-    expect(() => service.obter(99)).toThrow(NaoEncontradoError);
+  it('buscarPorId devolve undefined para id inexistente', () => {
+    expect(repository.buscarPorId(99)).toBeUndefined();
   });
 });

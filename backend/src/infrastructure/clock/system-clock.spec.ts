@@ -1,4 +1,4 @@
-import { SystemClock } from './clock';
+import { SystemClock } from './system-clock';
 
 describe('SystemClock', () => {
   it('devolve a hora local no formato YYYY-MM-DDTHH:mm', () => {

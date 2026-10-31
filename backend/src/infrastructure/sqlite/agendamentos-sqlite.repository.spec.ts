@@ -1,7 +1,7 @@
-import { criarBanco } from '../database/database.module';
-import { NovoAgendamento } from '../domain/agendamento';
-import { ConflitoError } from '../domain/erros';
-import { AgendamentosRepository } from './agendamentos.repository';
+import { criarBanco } from './database';
+import { NovoAgendamento } from '../../domain/agendamento';
+import { ConflitoError } from '../../domain/erros';
+import { AgendamentosSqliteRepository } from './agendamentos-sqlite.repository';
 
 const novo = (parcial: Partial<NovoAgendamento>): NovoAgendamento => ({
   pacienteNome: 'Maria Silva',
@@ -12,11 +12,11 @@ const novo = (parcial: Partial<NovoAgendamento>): NovoAgendamento => ({
   ...parcial,
 });
 
-describe('AgendamentosRepository', () => {
-  let repository: AgendamentosRepository;
+describe('AgendamentosSqliteRepository', () => {
+  let repository: AgendamentosSqliteRepository;
 
   beforeEach(() => {
-    repository = new AgendamentosRepository(criarBanco(':memory:'));
+    repository = new AgendamentosSqliteRepository(criarBanco(':memory:'));
   });
 
   it('insere e devolve o agendamento com id e criadoEm', () => {
@@ -36,7 +36,9 @@ describe('AgendamentosRepository', () => {
     expect(() => repository.inserirSeLivre(novo({ inicio, fim }))).toThrow(
       ConflitoError,
     );
-    expect(repository.listarDoDia(1, '2026-11-03')).toHaveLength(1);
+    expect(
+      repository.listarPorPeriodo(1, '2026-11-03', '2026-11-03'),
+    ).toHaveLength(1);
   });
 
   it('permite intervalos que apenas encostam', () => {
@@ -47,7 +49,9 @@ describe('AgendamentosRepository', () => {
     repository.inserirSeLivre(
       novo({ inicio: '2026-11-03T10:00', fim: '2026-11-03T10:40' }),
     );
-    expect(repository.listarDoDia(1, '2026-11-03')).toHaveLength(3);
+    expect(
+      repository.listarPorPeriodo(1, '2026-11-03', '2026-11-03'),
+    ).toHaveLength(3);
   });
 
   it('não conflita com outro médico nem com outro dia', () => {
@@ -56,18 +60,50 @@ describe('AgendamentosRepository', () => {
     repository.inserirSeLivre(
       novo({ inicio: '2026-11-04T09:20', fim: '2026-11-04T10:00' }),
     );
-    expect(repository.listarDoDia(1, '2026-11-03')).toHaveLength(1);
-    expect(repository.listarDoDia(2, '2026-11-03')).toHaveLength(1);
-    expect(repository.listarDoDia(1, '2026-11-04')).toHaveLength(1);
+    expect(
+      repository.listarPorPeriodo(1, '2026-11-03', '2026-11-03'),
+    ).toHaveLength(1);
+    expect(
+      repository.listarPorPeriodo(2, '2026-11-03', '2026-11-03'),
+    ).toHaveLength(1);
+    expect(
+      repository.listarPorPeriodo(1, '2026-11-04', '2026-11-04'),
+    ).toHaveLength(1);
   });
 
-  it('listarDoDia devolve em ordem de início', () => {
+  it('listarPorPeriodo devolve em ordem de início', () => {
     repository.inserirSeLivre(
       novo({ inicio: '2026-11-03T14:00', fim: '2026-11-03T14:40' }),
     );
     repository.inserirSeLivre(novo({}));
     expect(
-      repository.listarDoDia(1, '2026-11-03').map((a) => a.inicio),
+      repository
+        .listarPorPeriodo(1, '2026-11-03', '2026-11-03')
+        .map((a) => a.inicio),
     ).toEqual(['2026-11-03T09:20', '2026-11-03T14:00']);
+  });
+
+  it('listarPorPeriodo filtra por datas inclusivas e por médico opcional', () => {
+    const noDia = (dia: string, medicoId: number) =>
+      repository.inserirSeLivre(
+        novo({
+          medicoId,
+          inicio: `${dia}T09:00`,
+          fim: `${dia}T09:40`,
+        }),
+      );
+    noDia('2026-10-31', 1);
+    noDia('2026-11-01', 1);
+    noDia('2026-11-15', 2);
+    noDia('2026-11-30', 1);
+    noDia('2026-12-01', 1);
+
+    const datas = (medicoId?: number) =>
+      repository
+        .listarPorPeriodo(medicoId, '2026-11-01', '2026-11-30')
+        .map((a) => a.inicio.slice(0, 10));
+    expect(datas()).toEqual(['2026-11-01', '2026-11-15', '2026-11-30']);
+    expect(datas(1)).toEqual(['2026-11-01', '2026-11-30']);
+    expect(datas(3)).toEqual([]);
   });
 });
