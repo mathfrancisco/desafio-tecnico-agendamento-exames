@@ -395,6 +395,7 @@ button {
 }
 
 .dia {
+  container-type: inline-size;
   position: relative;
   min-height: 7.5rem;
   padding: 0.5rem;
@@ -669,6 +670,26 @@ button.eventos__mais {
   font-weight: 600;
 }
 
+.pilula {
+  white-space: nowrap;
+}
+
+.pilula__curto {
+  display: none;
+}
+
+/* células estreitas: texto curto e sem a linha do paciente */
+@container (max-width: 7.5rem) {
+  .pilula__longo,
+  .evento__paciente {
+    display: none;
+  }
+
+  .pilula__curto {
+    display: inline;
+  }
+}
+
 .pilula--livres {
   background: var(--primario-suave);
   color: var(--primario-acao-hover);
@@ -900,7 +921,7 @@ button.eventos__mais {
 }
 
 /* ---------- Telas estreitas ---------- */
-@media (max-width: 860px) {
+@media (max-width: 960px) {
   .app {
     grid-template-columns: minmax(0, 1fr);
     grid-template-areas:

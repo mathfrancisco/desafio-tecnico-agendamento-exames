@@ -91,7 +91,14 @@ export default function AgendaDoMedico({ exame, medico, exames, mes, hoje }: Pro
               {livres === null && disponibilidade.status === 'carregando' && (
                 <span className="pilula pilula--carregando" aria-hidden="true" />
               )}
-              {aberto && <span className="pilula pilula--livres">{rotuloLivres(quantidade)}</span>}
+              {aberto && (
+                <span className="pilula pilula--livres">
+                  <span className="pilula__longo">{rotuloLivres(quantidade)}</span>
+                  <span className="pilula__curto" aria-hidden="true">
+                    {quantidade} livres
+                  </span>
+                </span>
+              )}
               <EventosDoDia
                 agendamentos={porDia.get(data) ?? []}
                 nomeDoExame={nomeDoExame}
