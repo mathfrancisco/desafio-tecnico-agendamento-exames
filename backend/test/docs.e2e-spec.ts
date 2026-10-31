@@ -29,6 +29,7 @@ describe('Swagger em /api/docs', () => {
       '/api/agendamentos',
       '/api/agendamentos/{id}',
       '/api/exames',
+      '/api/health',
       '/api/medicos',
       '/api/medicos/{medicoId}/disponibilidade',
       '/api/medicos/{medicoId}/horarios',

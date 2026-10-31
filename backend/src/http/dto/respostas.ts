@@ -127,3 +127,8 @@ export class ErroResposta {
   })
   message!: string | string[];
 }
+
+export class SaudeResposta {
+  @ApiProperty({ example: 'ok' })
+  status!: string;
+}

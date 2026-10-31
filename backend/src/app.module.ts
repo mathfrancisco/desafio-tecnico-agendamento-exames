@@ -4,6 +4,7 @@ import { AGENDAMENTOS_REPOSITORY } from './application/ports/agendamentos.reposi
 import { CLOCK } from './application/ports/clock';
 import { EXAMES_REPOSITORY } from './application/ports/exames.repository';
 import { MEDICOS_REPOSITORY } from './application/ports/medicos.repository';
+import { VERIFICADOR_SAUDE } from './application/ports/saude';
 import { BuscarExames } from './application/use-cases/buscar-exames';
 import { CancelarAgendamento } from './application/use-cases/cancelar-agendamento';
 import { ConsultarDisponibilidade } from './application/use-cases/consultar-disponibilidade';
@@ -14,12 +15,14 @@ import { ListarMedicos } from './application/use-cases/listar-medicos';
 import { config } from './config';
 import { AgendamentosController } from './http/controllers/agendamentos.controller';
 import { ExamesController } from './http/controllers/exames.controller';
+import { HealthController } from './http/controllers/health.controller';
 import { MedicosController } from './http/controllers/medicos.controller';
 import { SystemClock } from './infrastructure/clock/system-clock';
 import { ExamesCsvRepository } from './infrastructure/csv/exames-csv.repository';
 import { MedicosMemoriaRepository } from './infrastructure/memoria/medicos-memoria.repository';
 import { AgendamentosSqliteRepository } from './infrastructure/sqlite/agendamentos-sqlite.repository';
 import { criarBanco, DATABASE } from './infrastructure/sqlite/database';
+import { SaudeSqlite } from './infrastructure/sqlite/saude-sqlite';
 
 /** Registra um use case construído com as dependências dos tokens em `inject`. */
 function casoDeUso<T>(
@@ -35,7 +38,12 @@ function casoDeUso<T>(
 
 // Raiz de composição: único lugar que liga ports a adapters e use cases a dependências.
 @Module({
-  controllers: [ExamesController, MedicosController, AgendamentosController],
+  controllers: [
+    ExamesController,
+    MedicosController,
+    AgendamentosController,
+    HealthController,
+  ],
   providers: [
     { provide: DATABASE, useFactory: () => criarBanco(config().dbPath) },
     { provide: CLOCK, useClass: SystemClock },
@@ -48,6 +56,11 @@ function casoDeUso<T>(
       provide: AGENDAMENTOS_REPOSITORY,
       useFactory: (db: Database.Database) =>
         new AgendamentosSqliteRepository(db),
+      inject: [DATABASE],
+    },
+    {
+      provide: VERIFICADOR_SAUDE,
+      useFactory: (db: Database.Database) => new SaudeSqlite(db),
       inject: [DATABASE],
     },
     casoDeUso(BuscarExames, [EXAMES_REPOSITORY]),
