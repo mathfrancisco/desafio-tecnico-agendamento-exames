@@ -11,7 +11,8 @@ export default function App() {
   const [medico, setMedico] = useState<Medico | null>(null)
   const [data, setData] = useState('')
   const [horario, setHorario] = useState<Horario | null>(null)
-  const [versaoHorarios] = useState(0)
+  const [versaoHorarios, setVersaoHorarios] = useState(0)
+  const [aviso, setAviso] = useState<string | null>(null)
   const [agendamento, setAgendamento] = useState<Agendamento | null>(null)
 
   // Mudar uma etapa limpa as seguintes.
@@ -21,17 +22,31 @@ export default function App() {
     setMedico(null)
     setData('')
     setHorario(null)
+    setAviso(null)
   }
 
   function escolherMedico(novo: Medico) {
     if (novo.id === medico?.id) return
     setMedico(novo)
     setHorario(null)
+    setAviso(null)
   }
 
   function escolherData(nova: string) {
     setData(nova)
     setHorario(null)
+    setAviso(null)
+  }
+
+  function escolherHorario(novo: Horario) {
+    setHorario(novo)
+    setAviso(null)
+  }
+
+  function horarioOcupado(mensagem: string) {
+    setAviso(mensagem)
+    setHorario(null)
+    setVersaoHorarios((v) => v + 1)
   }
 
   function novoAgendamento() {
@@ -39,6 +54,7 @@ export default function App() {
     setMedico(null)
     setData('')
     setHorario(null)
+    setAviso(null)
     setAgendamento(null)
   }
 
@@ -73,7 +89,8 @@ export default function App() {
               data={data}
               versao={versaoHorarios}
               selecionado={horario}
-              onSelecionar={setHorario}
+              aviso={aviso}
+              onSelecionar={escolherHorario}
             />
           ) : (
             <section className="etapa">
@@ -88,6 +105,7 @@ export default function App() {
               data={data}
               horario={horario}
               onCriado={setAgendamento}
+              onConflito={horarioOcupado}
             />
           )}
         </>

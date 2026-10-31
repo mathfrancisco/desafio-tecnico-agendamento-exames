@@ -11,6 +11,8 @@ interface Props {
   /** Muda para forçar nova consulta (ex.: após conflito 409). */
   versao: number
   selecionado: Horario | null
+  /** Aviso a destacar acima da lista (ex.: horário acabou de ser ocupado). */
+  aviso?: string | null
   onSelecionar: (horario: Horario) => void
 }
 
@@ -20,6 +22,7 @@ export default function HorariosLista({
   data,
   versao,
   selecionado,
+  aviso,
   onSelecionar,
 }: Props) {
   const id = useId()
@@ -34,6 +37,12 @@ export default function HorariosLista({
       <p className="estado">
         {medico.nome}, {formatarData(data)}, {exame.nome} ({exame.duracaoMinutos} min)
       </p>
+
+      {aviso && (
+        <p className="aviso" role="alert">
+          {aviso}
+        </p>
+      )}
 
       <div aria-live="polite">
         {horarios.status === 'carregando' && <p className="estado">Carregando horários…</p>}

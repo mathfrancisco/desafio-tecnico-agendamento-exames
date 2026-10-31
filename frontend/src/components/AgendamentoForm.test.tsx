@@ -15,7 +15,7 @@ const criado: Agendamento = {
   criadoEm: '2026-10-31T15:00:00.000Z',
 }
 
-function renderizar(onCriado = vi.fn()) {
+function renderizar(onCriado = vi.fn(), onConflito = vi.fn()) {
   render(
     <AgendamentoForm
       exame={exame}
@@ -23,9 +23,10 @@ function renderizar(onCriado = vi.fn()) {
       data="2026-11-03"
       horario={{ inicio: '08:00', fim: '08:40' }}
       onCriado={onCriado}
+      onConflito={onConflito}
     />,
   )
-  return onCriado
+  return { onCriado, onConflito }
 }
 
 function digitarNome(valor: string) {
@@ -74,7 +75,7 @@ describe('AgendamentoForm', () => {
     let resolver!: (r: Response) => void
     const fetchMock = vi.fn(() => new Promise<Response>((resolve) => (resolver = resolve)))
     vi.stubGlobal('fetch', fetchMock)
-    const onCriado = renderizar()
+    const { onCriado } = renderizar()
 
     digitarNome('  Maria Silva  ')
     fireEvent.click(screen.getByRole('button', { name: 'Confirmar agendamento' }))
@@ -92,5 +93,51 @@ describe('AgendamentoForm', () => {
 
     resolver(new Response(JSON.stringify(criado), { status: 201 }))
     await waitFor(() => expect(onCriado).toHaveBeenCalledWith(criado))
+  })
+
+  describe('erros do envio', () => {
+    function enviarComResposta(resposta: () => Promise<Response>) {
+      vi.stubGlobal('fetch', vi.fn(resposta))
+      const callbacks = renderizar()
+      digitarNome('Maria Silva')
+      fireEvent.click(screen.getByRole('button', { name: 'Confirmar agendamento' }))
+      return callbacks
+    }
+
+    it('409 avisa o pai para recarregar os horários', async () => {
+      const { onCriado, onConflito } = enviarComResposta(() =>
+        Promise.resolve(
+          new Response(
+            JSON.stringify({ statusCode: 409, error: 'Conflict', message: 'Horário ocupado' }),
+            { status: 409 },
+          ),
+        ),
+      )
+
+      await waitFor(() =>
+        expect(onConflito).toHaveBeenCalledWith(expect.stringMatching(/acabou de ser ocupado/)),
+      )
+      expect(onCriado).not.toHaveBeenCalled()
+    })
+
+    it.each([
+      [400, ['nome muito curto', 'inicio inválido'], 'nome muito curto; inicio inválido'],
+      [404, 'Médico não encontrado', 'Médico não encontrado'],
+      [422, 'Horário no passado', 'Horário no passado'],
+    ])('%i mostra a mensagem da API e reabilita o botão', async (status, message, esperado) => {
+      const { onConflito } = enviarComResposta(() =>
+        Promise.resolve(new Response(JSON.stringify({ statusCode: status, error: 'x', message }), { status })),
+      )
+
+      expect(await screen.findByRole('alert')).toHaveTextContent(esperado)
+      expect(screen.getByRole('button', { name: 'Confirmar agendamento' })).toBeEnabled()
+      expect(onConflito).not.toHaveBeenCalled()
+    })
+
+    it('falha de rede mostra mensagem genérica', async () => {
+      enviarComResposta(() => Promise.reject(new TypeError('Failed to fetch')))
+
+      expect(await screen.findByRole('alert')).toHaveTextContent(/conectar ao servidor/)
+    })
   })
 })

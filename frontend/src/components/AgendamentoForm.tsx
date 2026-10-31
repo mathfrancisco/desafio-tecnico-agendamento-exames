@@ -1,10 +1,12 @@
 import { useId, useState, type FormEvent } from 'react'
-import { criarAgendamento, mensagemDeErro } from '../api/client'
+import { ApiError, criarAgendamento, mensagemDeErro } from '../api/client'
 import type { Agendamento, Exame, Horario, Medico } from '../api/types'
 import { formatarData } from '../datas'
 
 const NOME_MIN = 3
 const NOME_MAX = 100
+const AVISO_CONFLITO =
+  'Este horário acabou de ser ocupado por outra pessoa. Escolha outro horário da lista atualizada.'
 
 function validarNome(nome: string): string | null {
   const tamanho = nome.trim().length
@@ -20,9 +22,18 @@ interface Props {
   data: string
   horario: Horario
   onCriado: (agendamento: Agendamento) => void
+  /** Horário ocupado (409): o pai recarrega os horários e limpa a seleção. */
+  onConflito: (aviso: string) => void
 }
 
-export default function AgendamentoForm({ exame, medico, data, horario, onCriado }: Props) {
+export default function AgendamentoForm({
+  exame,
+  medico,
+  data,
+  horario,
+  onCriado,
+  onConflito,
+}: Props) {
   const id = useId()
   const [nome, setNome] = useState('')
   const [tocado, setTocado] = useState(false)
@@ -47,7 +58,11 @@ export default function AgendamentoForm({ exame, medico, data, horario, onCriado
       })
       onCriado(agendamento)
     } catch (erro) {
-      setErroEnvio(mensagemDeErro(erro))
+      if (erro instanceof ApiError && erro.status === 409) {
+        onConflito(AVISO_CONFLITO)
+      } else {
+        setErroEnvio(mensagemDeErro(erro))
+      }
     } finally {
       setEnviando(false)
     }
