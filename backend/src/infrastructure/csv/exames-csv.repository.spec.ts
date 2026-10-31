@@ -11,10 +11,15 @@ describe('parseExamesCsv', () => {
     ]);
   });
 
-  it('falha se a duração não for numérica', () => {
-    expect(() =>
-      parseExamesCsv('id,nome,duracao_minutos\n1,Raio-X,abc'),
-    ).toThrow(/Linha inválida/);
+  it.each([
+    ['duração não numérica', '1,Raio-X,abc'],
+    ['duração fracionária', '1,Raio-X,7.5'],
+    ['duração zero', '1,Raio-X,0'],
+    ['coluna a mais (vírgula no nome)', '1,Raio-X, Tórax,20'],
+  ])('falha com %s', (_caso, linha) => {
+    expect(() => parseExamesCsv(`id,nome,duracao_minutos\n${linha}`)).toThrow(
+      /Linha inválida/,
+    );
   });
 });
 

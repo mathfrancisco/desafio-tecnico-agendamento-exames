@@ -70,6 +70,10 @@ A conexão liga `journal_mode = WAL` na subida (ver arquitetura, Concorrência).
 Não há `UPDATE` de agendamento (cancelar apaga, PR9), por isso o trigger cobre
 só o `INSERT`.
 
+O `exames.csv` é validado na subida: exatamente 3 colunas, id inteiro, nome
+preenchido e duração inteira positiva (a grade conta em minutos). Linha
+inválida impede a API de subir.
+
 Sem chave estrangeira para exame/médico: eles não estão no banco (catálogo
 fixo em memória). A integridade é garantida no service, que valida os ids antes
 de inserir.

@@ -11,16 +11,20 @@ export function parseExamesCsv(texto: string): Exame[] {
     .slice(1);
 
   return linhas.map((linha) => {
-    const [id, nome, duracao] = linha.split(',');
+    const colunas = linha.split(',');
+    const [id, nome, duracao] = colunas;
     const exame = {
       id: Number(id),
       nome: nome?.trim(),
       duracaoMinutos: Number(duracao),
     };
+    // Duração inteira: a grade de horários conta em minutos (RN2).
     if (
+      colunas.length !== 3 ||
       !Number.isInteger(exame.id) ||
       !exame.nome ||
-      !(exame.duracaoMinutos > 0)
+      !Number.isInteger(exame.duracaoMinutos) ||
+      exame.duracaoMinutos <= 0
     ) {
       throw new Error(`Linha inválida em exames.csv: "${linha}"`);
     }
