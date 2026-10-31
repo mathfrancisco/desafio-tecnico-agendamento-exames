@@ -42,6 +42,19 @@ describe('App', () => {
     expect(await screen.findByRole('heading', { level: 1, name: 'Agendar exame' })).toBeInTheDocument()
   })
 
+  it('troca de tela pela sidebar', async () => {
+    simularApi()
+    render(<App />)
+    await screen.findByRole('heading', { level: 1, name: 'Agendar exame' })
+
+    fireEvent.click(screen.getByRole('button', { name: 'Agendamentos' }))
+
+    expect(await screen.findByRole('heading', { level: 1, name: 'Agendamentos' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Agendamentos' })).toHaveAttribute('aria-current', 'page')
+    expect(screen.getByRole('button', { name: 'Agendar exame' })).not.toHaveAttribute('aria-current')
+    expect(await screen.findByText(/Nenhum agendamento em/)).toBeInTheDocument()
+  })
+
   it('mostra carregando e depois erro com retry quando o catálogo falha', async () => {
     let falhar = true
     vi.stubGlobal(

@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import type { Exame } from './api/types'
+import AgendamentosPagina from './components/agendamentos/AgendamentosPagina'
 import AgendarPagina from './components/agendar/AgendarPagina'
 import ErroRetry from './components/layout/ErroRetry'
 import Sidebar, { type Tela } from './components/layout/Sidebar'
@@ -32,7 +33,9 @@ export default function App() {
         {catalogo.status === 'ok' && tela === 'agendar' && (
           <AgendarPagina exame={exame} medicos={catalogo.dados.medicos} exames={catalogo.dados.exames} />
         )}
-        {catalogo.status === 'ok' && tela === 'agendamentos' && <h1>Agendamentos</h1>}
+        {catalogo.status === 'ok' && tela === 'agendamentos' && (
+          <AgendamentosPagina medicos={catalogo.dados.medicos} exames={catalogo.dados.exames} />
+        )}
       </main>
     </div>
   )
