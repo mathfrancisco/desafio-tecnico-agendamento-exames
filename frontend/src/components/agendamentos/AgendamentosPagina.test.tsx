@@ -65,7 +65,7 @@ function renderizar() {
 describe('AgendamentosPagina', () => {
   beforeEach(() => {
     vi.useFakeTimers({ toFake: ['Date'] })
-    vi.setSystemTime(new Date(2026, 10, 2, 10, 0))
+    vi.setSystemTime(new Date('2026-11-02T13:00:00Z')) // 10:00 na clínica
   })
   afterEach(() => vi.useRealTimers())
 

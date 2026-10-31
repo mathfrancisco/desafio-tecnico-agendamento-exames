@@ -72,14 +72,14 @@ Abra `http://localhost:5173`. O Vite encaminha `/api` para
 
 ```bash
 cd backend
-npm test            # unitários: domínio, use cases com ports falsos, adapters (97)
+npm test            # unitários: domínio, use cases com ports falsos, adapters (100)
 npm run test:e2e    # rotas HTTP, incluindo 10 pedidos concorrentes (82)
 npm run test:all    # os dois
 ```
 
 ```bash
 cd frontend
-npm test            # componentes, utilitários e cliente da API (101)
+npm test            # componentes, utilitários e cliente da API (102)
 ```
 
 A CI (GitHub Actions) roda lint, build e todos os testes das duas pontas em

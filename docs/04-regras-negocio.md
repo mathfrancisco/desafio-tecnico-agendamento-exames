@@ -44,7 +44,8 @@ horários que `/horarios` devolveria para aquele dia (mesmas RN2, RN4 e RN5).
 
 **PR1 — Fuso.** Toda agenda está em `America/Sao_Paulo` (clínica em MG). A
 API recebe e devolve hora local sem offset (`YYYY-MM-DDTHH:mm`). O Brasil não
-tem horário de verão desde 2019.
+tem horário de verão desde 2019. O front também calcula "hoje" nesse fuso,
+qualquer que seja o fuso do navegador.
 
 **PR2 — Início precisa estar na grade.** `POST /agendamentos` só aceita um
 `inicio` que a RN2 ofereceria para aquele exame (alinhado ao passo a partir do

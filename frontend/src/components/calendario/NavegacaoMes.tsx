@@ -1,4 +1,4 @@
-import { deslocarMes, hojeLocal, mesDe, nomeDoMes } from '../../utils/datas'
+import { deslocarMes, hojeNaClinica, mesDe, nomeDoMes } from '../../utils/datas'
 import { IconeSetaDireita, IconeSetaEsquerda } from '../icones'
 
 interface Props {
@@ -17,7 +17,7 @@ export default function NavegacaoMes({ mes, onMes, mesMinimo }: Props) {
       <button
         type="button"
         className="nav-mes__botao nav-mes__hoje"
-        onClick={() => onMes(mesDe(hojeLocal()))}
+        onClick={() => onMes(mesDe(hojeNaClinica()))}
       >
         Hoje
       </button>

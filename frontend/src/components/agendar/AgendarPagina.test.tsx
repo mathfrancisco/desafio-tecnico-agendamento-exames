@@ -84,7 +84,7 @@ function renderizar(exameEscolhido: Exame | null = exame) {
 describe('AgendarPagina', () => {
   beforeEach(() => {
     vi.useFakeTimers({ toFake: ['Date'] })
-    vi.setSystemTime(new Date(2026, 10, 2, 10, 0)) // segunda, 02/11/2026
+    vi.setSystemTime(new Date('2026-11-02T13:00:00Z')) // segunda, 02/11/2026 10:00 na clínica
   })
   afterEach(() => vi.useRealTimers())
 

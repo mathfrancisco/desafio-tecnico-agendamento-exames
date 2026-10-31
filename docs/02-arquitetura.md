@@ -143,12 +143,23 @@ Duas telas trocadas por estado (sem roteador, YAGNI):
 - **Agendamentos**: calendário do mês com todos os exames marcados (filtro por
   médico). Clicar num exame abre o painel com detalhes e **Cancelar**.
 
+Regras do front que acompanham as do back:
+
+- "Hoje" é a data no fuso da clínica (PR1), não a do navegador, e `useHoje`
+  confere a cada minuto: se o dia virar com a tela aberta, o calendário se
+  atualiza, as contagens do mês são buscadas de novo e o painel de um dia que
+  ficou no passado fecha.
+- Agendar: 409 (horário tomado) e 422 (horário passou com a tela aberta)
+  recarregam os horários do dia e as contagens do mês e pedem outra escolha.
+- Cancelar: 404 significa que outra pessoa já cancelou; o painel fecha e o mês
+  é recarregado, como num cancelamento bem-sucedido.
+
 ```
 frontend/src/
   main.tsx
   App.tsx                     layout (topbar + sidebar) e tela ativa
   api/                        client.ts (fetch + ApiError), types.ts
-  hooks/                      useDebounce, useRequisicao
+  hooks/                      useDebounce, useRequisicao, useHoje
   utils/                      datas (mês, grade do calendário), cores por modalidade
   components/
     layout/                   Topbar, Sidebar

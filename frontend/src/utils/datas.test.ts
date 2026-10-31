@@ -6,7 +6,7 @@ import {
   formatarDataLonga,
   formatarDiaMes,
   gradeDoMes,
-  hojeLocal,
+  hojeNaClinica,
   horaDe,
   indiceSemana,
   mesDe,
@@ -114,12 +114,14 @@ describe('datas', () => {
   })
 })
 
-describe('hojeLocal', () => {
+describe('hojeNaClinica', () => {
   afterEach(() => vi.useRealTimers())
 
-  it('usa a data local, não a UTC', () => {
+  it('usa a data em America/Sao_Paulo, não a UTC nem a do navegador', () => {
     vi.useFakeTimers({ toFake: ['Date'] })
-    vi.setSystemTime(new Date(2026, 10, 5, 23, 30)) // 05/11/2026 23:30 local
-    expect(hojeLocal()).toBe('2026-11-05')
+    vi.setSystemTime(new Date('2026-11-06T02:30:00Z')) // 05/11/2026 23:30 na clínica
+    expect(hojeNaClinica()).toBe('2026-11-05')
+    vi.setSystemTime(new Date('2026-11-06T03:00:00Z')) // meia-noite na clínica
+    expect(hojeNaClinica()).toBe('2026-11-06')
   })
 })

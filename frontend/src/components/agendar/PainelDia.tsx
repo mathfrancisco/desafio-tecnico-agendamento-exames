@@ -78,8 +78,10 @@ export default function PainelDia({
       onNome('')
       onAtualizado()
     } catch (erro) {
-      if (erro instanceof ApiError && erro.status === 409) {
-        setMensagem(AVISO_CONFLITO)
+      // 409: outra pessoa pegou o horário. 422: o horário passou com a tela aberta.
+      // Nos dois casos a lista está velha: recarrega e pede outra escolha.
+      if (erro instanceof ApiError && (erro.status === 409 || erro.status === 422)) {
+        setMensagem(erro.status === 409 ? AVISO_CONFLITO : erro.message)
         setInicio(null)
         recarregarHorarios()
         onAtualizado()

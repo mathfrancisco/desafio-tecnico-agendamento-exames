@@ -67,7 +67,7 @@ nome e receber a confirmação.
 | BE-07 | `AgendamentosService.criar` + `POST /api/agendamentos` + DTO validado | 201 com `fim` derivado; 400 validação; 404 ids; 422 passado e fora da grade; 409 ocupado; testes unitários e e2e |
 | BE-08 | Teste e2e de concorrência | 10 POSTs simultâneos ao mesmo horário → exatamente um 201 e nove 409 |
 | FE-04 | `AgendamentoForm` + `Confirmacao` | Valida nome (3–100) antes de enviar; botão desabilitado durante envio; mostra resumo; "novo agendamento" reinicia o fluxo |
-| FE-05 | Tratamento de erros do POST | 409: avisa e recarrega horários; 422/400/404: mostra mensagem da API; falha de rede: mensagem genérica; teste |
+| FE-05 | Tratamento de erros do POST | 409 e 422: avisam e recarregam horários; 400/404: mostram mensagem da API; falha de rede: mensagem genérica; teste |
 
 ---
 
@@ -105,7 +105,7 @@ horários livres para o exame e médico escolhidos.
 | --- | --- | --- |
 | BE-13 | Use case `ConsultarDisponibilidade` + `GET /api/medicos/:id/disponibilidade?mes&exameId` | Todos os dias do mês; uma consulta ao banco; dia sem turno/passado = 0; agendamento reduz o total; testes unitários e e2e |
 | FE-06 | Layout: topbar (logo, busca de exame), sidebar (Agendar exame, Agendamentos), tokens de cor | Responsivo; sidebar vira barra superior/inferior no celular |
-| FE-07 | `Calendario` mensal (SEG–DOM) com `NavegacaoMes` (Hoje, <, mês, >) | Grade correta para qualquer mês; dia de hoje destacado; testes de `utils/datas` |
+| FE-07 | `Calendario` mensal (SEG–DOM) com `NavegacaoMes` (Hoje, <, mês, >) | Grade correta para qualquer mês; dia de hoje (fuso da clínica) destacado e atualizado na virada do dia; testes de `utils/datas` e `useHoje` |
 | FE-08 | Tela Agendar: exame + chips de médico; células com "N livres"; dias sem vaga apagados; exames marcados do médico como `EventoCard` | Estados carregando/erro/vazio; teste |
 | FE-09 | `PainelDia`: horários do dia, nome do paciente, **Agendar** | 409 avisa e recarrega dia e mês, mantendo o nome digitado mesmo ao trocar de dia ou médico; sucesso atualiza calendário e limpa o nome; teste |
 
@@ -123,7 +123,7 @@ um que ainda não começou.
 | BE-14 | Use case `ListarAgendamentos` + `GET /api/agendamentos?mes[&medicoId]` | Ordenado por início; filtro por médico; 400 sem `mes`; testes |
 | BE-15 | Use case `CancelarAgendamento` + `DELETE /api/agendamentos/:id` | 204; 404 inexistente; 422 já iniciado; horário volta a aparecer em `/horarios`; testes |
 | FE-10 | Tela Agendamentos: calendário com `EventoCard` por exame (cor por modalidade), filtro por médico | Estados carregando/erro/vazio; teste |
-| FE-11 | `PainelAgendamento`: detalhes + **Cancelar** com confirmação | 422/404 mostram mensagem; sucesso remove do calendário; teste |
+| FE-11 | `PainelAgendamento`: detalhes + **Cancelar** com confirmação | 422 mostra mensagem; sucesso ou 404 (já cancelado) removem do calendário; teste |
 
 ---
 

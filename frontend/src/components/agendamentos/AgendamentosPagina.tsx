@@ -1,9 +1,10 @@
 import { useState } from 'react'
 import { listarAgendamentos } from '../../api/client'
 import type { Exame, Medico } from '../../api/types'
+import { useHoje } from '../../hooks/useHoje'
 import { useRequisicao } from '../../hooks/useRequisicao'
 import { agruparPorDia, nomeDoExamePor } from '../../utils/agendamentos'
-import { hojeLocal, mesDe, nomeDoMes } from '../../utils/datas'
+import { mesDe, nomeDoMes } from '../../utils/datas'
 import Calendario from '../calendario/Calendario'
 import DiaCelula from '../calendario/DiaCelula'
 import EventosDoDia from '../calendario/EventosDoDia'
@@ -20,7 +21,7 @@ interface Props {
 const EVENTOS_POR_DIA = 3
 
 export default function AgendamentosPagina({ medicos, exames }: Props) {
-  const [hoje] = useState(hojeLocal)
+  const hoje = useHoje()
   const [mes, setMes] = useState(() => mesDe(hoje))
   const [medicoId, setMedicoId] = useState<number | null>(null)
   const [selecionadoId, setSelecionadoId] = useState<number | null>(null)

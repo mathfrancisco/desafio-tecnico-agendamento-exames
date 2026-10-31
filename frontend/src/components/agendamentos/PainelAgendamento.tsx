@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { cancelarAgendamento, mensagemDeErro } from '../../api/client'
+import { ApiError, cancelarAgendamento, mensagemDeErro } from '../../api/client'
 import type { Agendamento, Exame, Medico } from '../../api/types'
 import { dataDe, formatarDataLonga, horaDe } from '../../utils/datas'
 import { modalidadeDoExame } from '../../utils/modalidade'
@@ -13,7 +13,7 @@ interface Props {
   exame?: Exame
   medico?: Medico
   onFechar: () => void
-  /** Chamado após o 204: o pai fecha o painel e recarrega o mês. */
+  /** Chamado após o 204 (ou 404, já cancelado): o pai fecha o painel e recarrega o mês. */
   onCancelado: () => void
 }
 
@@ -37,6 +37,11 @@ export default function PainelAgendamento({
       await cancelarAgendamento(agendamento.id)
       onCancelado()
     } catch (erro) {
+      // 404: outra pessoa já cancelou; para esta tela o resultado é o mesmo.
+      if (erro instanceof ApiError && erro.status === 404) {
+        onCancelado()
+        return
+      }
       setMensagem(mensagemDeErro(erro))
       setConfirmando(false)
     } finally {

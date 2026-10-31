@@ -109,7 +109,7 @@ describe('NavegacaoMes', () => {
 
   it('navega para o mês anterior, o próximo e volta para hoje', () => {
     vi.useFakeTimers({ toFake: ['Date'] })
-    vi.setSystemTime(new Date(2026, 9, 31, 10))
+    vi.setSystemTime(new Date('2026-10-31T13:00:00Z')) // 10:00 na clínica
     const onMes = vi.fn()
     render(<NavegacaoMes mes="2026-12" onMes={onMes} />)
 

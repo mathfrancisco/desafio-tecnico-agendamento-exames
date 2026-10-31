@@ -93,11 +93,12 @@ describe('PainelAgendamento', () => {
     await waitFor(() => expect(onCancelado).toHaveBeenCalled())
   })
 
-  it.each([
-    [422, 'Unprocessable Entity', 'Não é possível cancelar um agendamento que já começou'],
-    [404, 'Not Found', 'Agendamento não encontrado'],
-  ])('%i: mostra a mensagem da API e não avisa o pai', async (status, error, message) => {
-    vi.stubGlobal('fetch', vi.fn(() => json({ statusCode: status, error, message }, status)))
+  it('422: mostra a mensagem da API e não avisa o pai', async () => {
+    const message = 'Não é possível cancelar um agendamento que já começou'
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(() => json({ statusCode: 422, error: 'Unprocessable Entity', message }, 422)),
+    )
     const { onCancelado } = renderizar()
 
     pedirCancelamento()
@@ -106,6 +107,22 @@ describe('PainelAgendamento', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent(message)
     expect(onCancelado).not.toHaveBeenCalled()
     expect(screen.getByRole('button', { name: 'Cancelar agendamento' })).toBeEnabled()
+  })
+
+  it('404 (outra pessoa já cancelou): avisa o pai, que fecha o painel e recarrega o mês', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(() =>
+        json({ statusCode: 404, error: 'Not Found', message: 'Agendamento 1 não encontrado' }, 404),
+      ),
+    )
+    const { onCancelado } = renderizar()
+
+    pedirCancelamento()
+    fireEvent.click(screen.getByRole('button', { name: 'Sim, cancelar agendamento' }))
+
+    await waitFor(() => expect(onCancelado).toHaveBeenCalledTimes(1))
+    expect(screen.queryByRole('alert')).toBeNull()
   })
 
   it('falha de rede mostra mensagem genérica', async () => {

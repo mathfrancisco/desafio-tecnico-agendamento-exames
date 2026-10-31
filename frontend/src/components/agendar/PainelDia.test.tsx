@@ -198,10 +198,28 @@ describe('PainelDia', () => {
     expect(onAtualizado).toHaveBeenCalledTimes(1)
   })
 
+  it('422 (horário passou com a tela aberta): mostra a mensagem e recarrega os horários', async () => {
+    const message = 'Não é possível agendar em data e hora que já passaram'
+    const fetchMock = simularApi({
+      horarios: [dois, apenasUm],
+      post: () => json({ statusCode: 422, error: 'Unprocessable Entity', message }, 422),
+    })
+    const { onAtualizado } = renderizar()
+    await escolherHorarioEPreencher()
+
+    agendar()
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(message)
+    await waitFor(() => expect(consultasDeHorarios(fetchMock)).toBe(2))
+    await waitFor(() => expect(screen.queryByRole('button', { name: '08:00–08:40' })).toBeNull())
+    expect(screen.getByRole('button', { name: '08:40–09:20' })).toHaveAttribute('aria-pressed', 'false')
+    expect(screen.getByLabelText('Nome do paciente')).toHaveValue('Maria Silva')
+    expect(onAtualizado).toHaveBeenCalledTimes(1)
+  })
+
   it.each([
     [400, 'Bad Request', ['nome curto', 'inicio inválido'], 'nome curto; inicio inválido'],
     [404, 'Not Found', 'Médico não encontrado', 'Médico não encontrado'],
-    [422, 'Unprocessable Entity', 'Horário no passado', 'Horário no passado'],
   ])('%i: mostra a mensagem da API e mantém a escolha', async (status, error, message, esperado) => {
     simularApi({ post: () => json({ statusCode: status, error, message }, status) })
     const { onAtualizado } = renderizar()

@@ -1,8 +1,8 @@
 /**
  * Datas de agenda são texto (`YYYY-MM-DD`, `YYYY-MM`, `YYYY-MM-DDTHH:mm`) no
  * horário da clínica. Toda conta de calendário usa `Date.UTC`, para não
- * depender do fuso nem do horário de verão do navegador. Só `hojeLocal` olha
- * para o relógio local.
+ * depender do fuso nem do horário de verão do navegador. Só `hojeNaClinica`
+ * olha para o relógio.
  */
 
 /** Dias da semana, segunda primeiro (mesma ordem da grade do calendário). */
@@ -37,10 +37,19 @@ function doisDigitos(n: number): string {
   return String(n).padStart(2, '0')
 }
 
-/** Data de hoje no fuso local do navegador, como `YYYY-MM-DD`. */
-export function hojeLocal(): string {
-  const agora = new Date()
-  return `${agora.getFullYear()}-${doisDigitos(agora.getMonth() + 1)}-${doisDigitos(agora.getDate())}`
+// PR1: a agenda é toda no fuso da clínica, mesmo que o navegador esteja em outro.
+const DATA_NA_CLINICA = new Intl.DateTimeFormat('en-CA', {
+  timeZone: 'America/Sao_Paulo',
+  year: 'numeric',
+  month: '2-digit',
+  day: '2-digit',
+})
+
+/** Data de hoje no fuso da clínica (America/Sao_Paulo), como `YYYY-MM-DD`. */
+export function hojeNaClinica(): string {
+  const p: Record<string, string> = {}
+  for (const parte of DATA_NA_CLINICA.formatToParts(new Date())) p[parte.type] = parte.value
+  return `${p.year}-${p.month}-${p.day}`
 }
 
 /** `2026-11-03` (ou `2026-11-03T08:00`) -> `2026-11`. */

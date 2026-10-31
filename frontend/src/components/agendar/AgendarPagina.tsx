@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import type { Exame, Medico } from '../../api/types'
+import { useHoje } from '../../hooks/useHoje'
 import { variaveis } from '../../utils/classes'
-import { hojeLocal, mesDe } from '../../utils/datas'
+import { mesDe } from '../../utils/datas'
 import { modalidadeDoExame } from '../../utils/modalidade'
 import Calendario from '../calendario/Calendario'
 import DiaCelula from '../calendario/DiaCelula'
@@ -17,7 +18,7 @@ interface Props {
 }
 
 export default function AgendarPagina({ exame, medicos, exames }: Props) {
-  const [hoje] = useState(hojeLocal)
+  const hoje = useHoje()
   const [mes, setMes] = useState(() => mesDe(hoje))
   const [medicoId, setMedicoId] = useState<number | null>(null)
   const [nomePaciente, setNomePaciente] = useState('')

@@ -41,7 +41,8 @@ export default function AgendaDoMedico({
   nomePaciente,
   onNomePaciente,
 }: Props) {
-  const chave = `${medico.id}|${exame.id}|${mes}`
+  // `hoje` na chave: se o dia virar com a tela aberta, as contagens são buscadas de novo.
+  const chave = `${medico.id}|${exame.id}|${mes}|${hoje}`
   const [disponibilidade, recarregarDisponibilidade] = useRequisicao(
     () => buscarDisponibilidade(medico.id, exame.id, mes),
     `disponibilidade|${chave}`,
@@ -51,8 +52,11 @@ export default function AgendaDoMedico({
     `marcados|${chave}`,
   )
   const [diaSelecionado, setDiaSelecionado] = useState<string | null>(null)
-  // trocar de mês fecha o painel do dia aberto
-  const diaAberto = diaSelecionado !== null && mesDe(diaSelecionado) === mes ? diaSelecionado : null
+  // trocar de mês, ou o dia aberto ficar no passado, fecha o painel
+  const diaAberto =
+    diaSelecionado !== null && mesDe(diaSelecionado) === mes && diaSelecionado >= hoje
+      ? diaSelecionado
+      : null
 
   const livres =
     disponibilidade.status === 'ok'
