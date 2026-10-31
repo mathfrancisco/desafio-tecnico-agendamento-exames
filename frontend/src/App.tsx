@@ -1,115 +1,42 @@
 import { useState } from 'react'
-import type { Agendamento, Exame, Horario, Medico } from './api/types'
-import AgendamentoForm from './components/AgendamentoForm'
-import Confirmacao from './components/Confirmacao'
-import ExameBusca from './components/ExameBusca'
-import HorariosLista from './components/HorariosLista'
-import MedicoData from './components/MedicoData'
+import type { Exame } from './api/types'
+import AgendamentosPagina from './components/agendamentos/AgendamentosPagina'
+import AgendarPagina from './components/agendar/AgendarPagina'
+import ErroRetry from './components/layout/ErroRetry'
+import Sidebar, { type Tela } from './components/layout/Sidebar'
+import Topbar from './components/layout/Topbar'
+import { useCatalogo } from './hooks/useCatalogo'
 
 export default function App() {
+  const [tela, setTela] = useState<Tela>('agendar')
   const [exame, setExame] = useState<Exame | null>(null)
-  const [medico, setMedico] = useState<Medico | null>(null)
-  const [data, setData] = useState('')
-  const [horario, setHorario] = useState<Horario | null>(null)
-  const [versaoHorarios, setVersaoHorarios] = useState(0)
-  const [aviso, setAviso] = useState<string | null>(null)
-  const [agendamento, setAgendamento] = useState<Agendamento | null>(null)
+  const [catalogo, recarregarCatalogo] = useCatalogo()
 
-  // Mudar uma etapa limpa as seguintes.
   function escolherExame(novo: Exame) {
-    if (novo.id === exame?.id) return
     setExame(novo)
-    setMedico(null)
-    setData('')
-    setHorario(null)
-    setAviso(null)
-  }
-
-  function escolherMedico(novo: Medico) {
-    if (novo.id === medico?.id) return
-    setMedico(novo)
-    setHorario(null)
-    setAviso(null)
-  }
-
-  function escolherData(nova: string) {
-    setData(nova)
-    setHorario(null)
-    setAviso(null)
-  }
-
-  function escolherHorario(novo: Horario) {
-    setHorario(novo)
-    setAviso(null)
-  }
-
-  function horarioOcupado(mensagem: string) {
-    setAviso(mensagem)
-    setHorario(null)
-    setVersaoHorarios((v) => v + 1)
-  }
-
-  function novoAgendamento() {
-    setExame(null)
-    setMedico(null)
-    setData('')
-    setHorario(null)
-    setAviso(null)
-    setAgendamento(null)
+    setTela('agendar')
   }
 
   return (
-    <main className="pagina">
-      <header>
-        <h1>Agendamento de exames</h1>
-        <p className="subtitulo">Escolha o exame, o médico, a data e o horário.</p>
-      </header>
-
-      {agendamento && exame && medico ? (
-        <Confirmacao
-          agendamento={agendamento}
-          exame={exame}
-          medico={medico}
-          onNovo={novoAgendamento}
-        />
-      ) : (
-        <>
-          <ExameBusca selecionado={exame} onSelecionar={escolherExame} />
-          <MedicoData
-            habilitado={exame !== null}
-            medico={medico}
-            data={data}
-            onMedico={escolherMedico}
-            onData={escolherData}
-          />
-          {exame && medico && data ? (
-            <HorariosLista
-              exame={exame}
-              medico={medico}
-              data={data}
-              versao={versaoHorarios}
-              selecionado={horario}
-              aviso={aviso}
-              onSelecionar={escolherHorario}
-            />
-          ) : (
-            <section className="etapa">
-              <h2>3. Horário</h2>
-              <p className="estado">Escolha exame, médico e data para ver os horários.</p>
-            </section>
-          )}
-          {exame && medico && data && horario && (
-            <AgendamentoForm
-              exame={exame}
-              medico={medico}
-              data={data}
-              horario={horario}
-              onCriado={setAgendamento}
-              onConflito={horarioOcupado}
-            />
-          )}
-        </>
-      )}
-    </main>
+    <div className="app">
+      <Topbar onSelecionarExame={escolherExame} />
+      <Sidebar tela={tela} onTela={setTela} />
+      <main className="conteudo">
+        {catalogo.status === 'erro' && (
+          <ErroRetry mensagem={catalogo.mensagem} onTentar={recarregarCatalogo} />
+        )}
+        {catalogo.status === 'carregando' && (
+          <p className="carregando" role="status">
+            Carregando médicos e exames…
+          </p>
+        )}
+        {catalogo.status === 'ok' && tela === 'agendar' && (
+          <AgendarPagina exame={exame} medicos={catalogo.dados.medicos} exames={catalogo.dados.exames} />
+        )}
+        {catalogo.status === 'ok' && tela === 'agendamentos' && (
+          <AgendamentosPagina medicos={catalogo.dados.medicos} exames={catalogo.dados.exames} />
+        )}
+      </main>
+    </div>
   )
 }

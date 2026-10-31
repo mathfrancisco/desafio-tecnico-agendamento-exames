@@ -43,3 +43,15 @@ export interface Agendamento extends NovoAgendamento {
   fim: string
   criadoEm: string
 }
+
+export interface DiaDisponibilidade {
+  data: string
+  livres: number
+}
+
+export interface Disponibilidade {
+  medicoId: number
+  exameId: number
+  mes: string
+  dias: DiaDisponibilidade[]
+}
