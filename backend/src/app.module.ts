@@ -5,6 +5,7 @@ import { CLOCK } from './application/ports/clock';
 import { EXAMES_REPOSITORY } from './application/ports/exames.repository';
 import { MEDICOS_REPOSITORY } from './application/ports/medicos.repository';
 import { BuscarExames } from './application/use-cases/buscar-exames';
+import { ConsultarDisponibilidade } from './application/use-cases/consultar-disponibilidade';
 import { ConsultarHorarios } from './application/use-cases/consultar-horarios';
 import { CriarAgendamento } from './application/use-cases/criar-agendamento';
 import { ListarMedicos } from './application/use-cases/listar-medicos';
@@ -50,6 +51,12 @@ function casoDeUso<T>(
     casoDeUso(BuscarExames, [EXAMES_REPOSITORY]),
     casoDeUso(ListarMedicos, [MEDICOS_REPOSITORY]),
     casoDeUso(ConsultarHorarios, [
+      MEDICOS_REPOSITORY,
+      EXAMES_REPOSITORY,
+      AGENDAMENTOS_REPOSITORY,
+      CLOCK,
+    ]),
+    casoDeUso(ConsultarDisponibilidade, [
       MEDICOS_REPOSITORY,
       EXAMES_REPOSITORY,
       AGENDAMENTOS_REPOSITORY,

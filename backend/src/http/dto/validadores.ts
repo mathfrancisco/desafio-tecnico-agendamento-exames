@@ -1,5 +1,5 @@
 import { ValidateBy, ValidationOptions } from 'class-validator';
-import { ehDataHoraReal, ehDataReal } from '../../domain/tempo';
+import { ehDataHoraReal, ehDataReal, ehMes } from '../../domain/tempo';
 
 function validadorDeTexto(
   nome: string,
@@ -24,6 +24,12 @@ export const IsDataReal = validadorDeTexto(
   'isDataReal',
   ehDataReal,
   '$property deve ser uma data real no formato YYYY-MM-DD',
+);
+
+export const IsMes = validadorDeTexto(
+  'isMes',
+  ehMes,
+  '$property deve ser um mês no formato YYYY-MM',
 );
 
 export const IsDataHoraReal = validadorDeTexto(

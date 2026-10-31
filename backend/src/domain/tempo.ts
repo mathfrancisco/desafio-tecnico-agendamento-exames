@@ -27,6 +27,21 @@ export function ehDataReal(data: string): boolean {
   );
 }
 
+/** Aceita apenas meses no formato YYYY-MM. */
+export function ehMes(valor: string): boolean {
+  return /^\d{4}-(0[1-9]|1[0-2])$/.test(valor);
+}
+
+/** Todas as datas YYYY-MM-DD do mês YYYY-MM, em ordem. */
+export function diasDoMes(mes: string): string[] {
+  const [ano, numero] = mes.split('-').map(Number);
+  const total = new Date(Date.UTC(ano, numero, 0)).getUTCDate();
+  return Array.from(
+    { length: total },
+    (_, i) => `${mes}-${String(i + 1).padStart(2, '0')}`,
+  );
+}
+
 /** Aceita apenas data e hora reais no formato YYYY-MM-DDTHH:mm. */
 export function ehDataHoraReal(valor: string): boolean {
   const m = /^(\d{4}-\d{2}-\d{2})T(\d{2}):(\d{2})$/.exec(valor);

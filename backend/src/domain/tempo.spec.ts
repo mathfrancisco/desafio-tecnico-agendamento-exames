@@ -1,8 +1,10 @@
 import {
   deMinutos,
   diaDaSemana,
+  diasDoMes,
   ehDataHoraReal,
   ehDataReal,
+  ehMes,
   paraMinutos,
 } from './tempo';
 
@@ -24,6 +26,25 @@ describe('tempo', () => {
     expect(ehDataReal('2026-02-30')).toBe(false);
     expect(ehDataReal('2026-13-01')).toBe(false);
     expect(ehDataReal('26-01-01')).toBe(false);
+  });
+
+  it('valida meses no formato YYYY-MM', () => {
+    expect(ehMes('2026-11')).toBe(true);
+    expect(ehMes('2026-12')).toBe(true);
+    expect(ehMes('2026-00')).toBe(false);
+    expect(ehMes('2026-13')).toBe(false);
+    expect(ehMes('2026-1')).toBe(false);
+    expect(ehMes('2026-11-01')).toBe(false);
+  });
+
+  it('lista os dias do mês, inclusive fevereiro bissexto', () => {
+    const novembro = diasDoMes('2026-11');
+    expect(novembro).toHaveLength(30);
+    expect(novembro[0]).toBe('2026-11-01');
+    expect(novembro[29]).toBe('2026-11-30');
+    expect(diasDoMes('2026-12')).toHaveLength(31);
+    expect(diasDoMes('2026-02')).toHaveLength(28);
+    expect(diasDoMes('2028-02')).toHaveLength(29);
   });
 
   it('valida data e hora reais', () => {
