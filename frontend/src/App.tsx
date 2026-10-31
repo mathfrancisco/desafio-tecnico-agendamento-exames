@@ -1,16 +1,15 @@
 import { useState } from 'react'
 import type { Exame } from './api/types'
+import AgendarPagina from './components/agendar/AgendarPagina'
+import ErroRetry from './components/layout/ErroRetry'
 import Sidebar, { type Tela } from './components/layout/Sidebar'
 import Topbar from './components/layout/Topbar'
-
-const TITULOS: Record<Tela, string> = {
-  agendar: 'Agendar exame',
-  agendamentos: 'Agendamentos',
-}
+import { useCatalogo } from './hooks/useCatalogo'
 
 export default function App() {
   const [tela, setTela] = useState<Tela>('agendar')
   const [exame, setExame] = useState<Exame | null>(null)
+  const [catalogo, recarregarCatalogo] = useCatalogo()
 
   function escolherExame(novo: Exame) {
     setExame(novo)
@@ -22,8 +21,18 @@ export default function App() {
       <Topbar onSelecionarExame={escolherExame} />
       <Sidebar tela={tela} onTela={setTela} />
       <main className="conteudo">
-        <h1>{TITULOS[tela]}</h1>
-        {exame && <p>{exame.nome}</p>}
+        {catalogo.status === 'erro' && (
+          <ErroRetry mensagem={catalogo.mensagem} onTentar={recarregarCatalogo} />
+        )}
+        {catalogo.status === 'carregando' && (
+          <p className="carregando" role="status">
+            Carregando médicos e exames…
+          </p>
+        )}
+        {catalogo.status === 'ok' && tela === 'agendar' && (
+          <AgendarPagina exame={exame} medicos={catalogo.dados.medicos} exames={catalogo.dados.exames} />
+        )}
+        {catalogo.status === 'ok' && tela === 'agendamentos' && <h1>Agendamentos</h1>}
       </main>
     </div>
   )
