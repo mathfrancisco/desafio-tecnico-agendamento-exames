@@ -3,8 +3,8 @@ import { Test } from '@nestjs/testing';
 import request from 'supertest';
 import type { App } from 'supertest/types';
 import { AppModule } from '../src/app.module';
-import { configurarApp } from '../src/app.setup';
-import { CLOCK } from '../src/shared/clock';
+import { configurarApp } from '../src/http/app.setup';
+import { CLOCK } from '../src/application/ports/clock';
 
 export const http = (app: INestApplication) =>
   request(app.getHttpServer() as App);
@@ -12,12 +12,18 @@ export const http = (app: INestApplication) =>
 // 2026-11-02 é uma segunda-feira.
 export const AGORA_FIXO = '2026-11-02T10:00';
 
-/** Sobe a aplicação com banco em memória e relógio fixo. */
-export async function criarApp(agora = AGORA_FIXO): Promise<INestApplication> {
+export interface Relogio {
+  agora: string;
+}
+
+/** Sobe a aplicação com banco em memória e relógio controlável (padrão: fixo em AGORA_FIXO). */
+export async function criarApp(
+  relogio: Relogio = { agora: AGORA_FIXO },
+): Promise<INestApplication> {
   process.env.DB_PATH = ':memory:';
   const modulo = await Test.createTestingModule({ imports: [AppModule] })
     .overrideProvider(CLOCK)
-    .useValue({ agoraLocal: () => agora })
+    .useValue({ agoraLocal: () => relogio.agora })
     .compile();
   const app = modulo.createNestApplication();
   configurarApp(app);
