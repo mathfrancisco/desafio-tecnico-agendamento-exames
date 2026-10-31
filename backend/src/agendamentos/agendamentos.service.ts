@@ -2,10 +2,12 @@ import { Inject, Injectable } from '@nestjs/common';
 import { ExamesService } from '../exames/exames.service';
 import { MedicosService } from '../medicos/medicos.service';
 import { CLOCK, type Clock } from '../shared/clock';
-import { RegraNegocioError } from '../shared/erros';
-import { Agendamento, AgendamentosRepository } from './agendamentos.repository';
+import { Agendamento } from '../domain/agendamento';
+import { RegraNegocioError } from '../domain/erros';
+import { gerarHorarios } from '../domain/gerar-horarios';
+import { turnosDoDia } from '../domain/medico';
+import { AgendamentosRepository } from './agendamentos.repository';
 import { CriarAgendamentoDto } from './dto/criar-agendamento.dto';
-import { gerarHorarios } from './gerar-horarios';
 
 @Injectable()
 export class AgendamentosService {
@@ -30,7 +32,7 @@ export class AgendamentosService {
     const data = dto.inicio.slice(0, 10);
     const hora = dto.inicio.slice(11);
     const horario = gerarHorarios(
-      this.medicos.turnosDoDia(medico, data),
+      turnosDoDia(medico, data),
       exame.duracaoMinutos,
       [],
     ).find((h) => h.inicio === hora);

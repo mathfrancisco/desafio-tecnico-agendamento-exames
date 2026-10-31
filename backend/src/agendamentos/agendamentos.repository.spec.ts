@@ -1,9 +1,7 @@
 import { criarBanco } from '../database/database.module';
-import { ConflitoError } from '../shared/erros';
-import {
-  AgendamentosRepository,
-  NovoAgendamento,
-} from './agendamentos.repository';
+import { NovoAgendamento } from '../domain/agendamento';
+import { ConflitoError } from '../domain/erros';
+import { AgendamentosRepository } from './agendamentos.repository';
 
 const novo = (parcial: Partial<NovoAgendamento>): NovoAgendamento => ({
   pacienteNome: 'Maria Silva',

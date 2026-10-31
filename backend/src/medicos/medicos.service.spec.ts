@@ -1,4 +1,4 @@
-import { NaoEncontradoError } from '../shared/erros';
+import { NaoEncontradoError } from '../domain/erros';
 import { MedicosRepository } from './medicos.repository';
 import { MedicosService } from './medicos.service';
 
@@ -54,13 +54,6 @@ describe('MedicosService', () => {
       'SEG 10:00-14:00, TER 10:00-14:00, QUA 10:00-14:00, QUI 10:00-14:00, ' +
         'SEX 10:00-14:00, SAB 08:00-12:00',
     );
-  });
-
-  it('turnosDoDia usa o dia da semana da data', () => {
-    const thiago = service.obter(4);
-    // 2026-11-04 é quarta-feira; 2026-11-02 é segunda-feira.
-    expect(service.turnosDoDia(thiago, '2026-11-04')).toHaveLength(2);
-    expect(service.turnosDoDia(thiago, '2026-11-02')).toEqual([]);
   });
 
   it('obter lança NaoEncontradoError para id inexistente', () => {

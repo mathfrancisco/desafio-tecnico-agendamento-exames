@@ -1,4 +1,4 @@
-import { deMinutos, paraMinutos } from '../shared/tempo';
+import { deMinutos, paraMinutos } from './tempo';
 
 /** Intervalo dentro de um dia, em HH:MM. O fim é exclusivo. */
 export interface Intervalo {

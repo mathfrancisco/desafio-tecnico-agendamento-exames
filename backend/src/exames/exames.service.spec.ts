@@ -1,4 +1,4 @@
-import { NaoEncontradoError } from '../shared/erros';
+import { NaoEncontradoError } from '../domain/erros';
 import { ExamesRepository } from './exames.repository';
 import { ExamesService } from './exames.service';
 

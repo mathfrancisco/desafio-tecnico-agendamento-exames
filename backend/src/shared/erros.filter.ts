@@ -5,7 +5,11 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import type { Response } from 'express';
-import { ConflitoError, NaoEncontradoError, RegraNegocioError } from './erros';
+import {
+  ConflitoError,
+  NaoEncontradoError,
+  RegraNegocioError,
+} from '../domain/erros';
 
 @Catch(NaoEncontradoError, RegraNegocioError, ConflitoError)
 export class ErrosFilter implements ExceptionFilter {

@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import { NaoEncontradoError } from '../shared/erros';
-import { Exame, ExamesRepository } from './exames.repository';
+import { Exame } from '../domain/exame';
+import { NaoEncontradoError } from '../domain/erros';
+import { ExamesRepository } from './exames.repository';
 
 function normalizar(texto: string): string {
   return texto

@@ -1,7 +1,7 @@
-export type Dia = 'SEG' | 'TER' | 'QUA' | 'QUI' | 'SEX' | 'SAB' | 'DOM';
+export type DiaSemana = 'SEG' | 'TER' | 'QUA' | 'QUI' | 'SEX' | 'SAB' | 'DOM';
 
 // Índice = Date.getUTCDay() (domingo = 0).
-const DIAS: Dia[] = ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SAB'];
+const DIAS: DiaSemana[] = ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SAB'];
 
 export function paraMinutos(hhmm: string): number {
   const [h, m] = hhmm.split(':').map(Number);
@@ -35,7 +35,7 @@ export function ehDataHoraReal(valor: string): boolean {
 }
 
 /** Calculado a partir do texto da data, sem depender do fuso da máquina. */
-export function diaDaSemana(data: string): Dia {
+export function diaDaSemana(data: string): DiaSemana {
   const [ano, mes, dia] = data.split('-').map(Number);
   return DIAS[new Date(Date.UTC(ano, mes - 1, dia)).getUTCDay()];
 }

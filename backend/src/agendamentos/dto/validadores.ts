@@ -1,5 +1,5 @@
 import { ValidateBy, ValidationOptions } from 'class-validator';
-import { ehDataHoraReal, ehDataReal } from '../../shared/tempo';
+import { ehDataHoraReal, ehDataReal } from '../../domain/tempo';
 
 function validadorDeTexto(
   nome: string,

@@ -7,7 +7,7 @@ import {
   ConflitoError,
   NaoEncontradoError,
   RegraNegocioError,
-} from '../shared/erros';
+} from '../domain/erros';
 import { AgendamentosRepository } from './agendamentos.repository';
 import { AgendamentosService } from './agendamentos.service';
 import { CriarAgendamentoDto } from './dto/criar-agendamento.dto';

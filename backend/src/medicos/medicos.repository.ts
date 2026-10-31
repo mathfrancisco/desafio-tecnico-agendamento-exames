@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { Medico, MEDICOS } from './medicos.data';
+import type { Medico } from '../domain/medico';
+import { MEDICOS } from './medicos.data';
 
 @Injectable()
 export class MedicosRepository {

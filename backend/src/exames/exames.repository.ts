@@ -1,12 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { readFileSync } from 'node:fs';
 import { config } from '../config';
-
-export interface Exame {
-  id: number;
-  nome: string;
-  duracaoMinutos: number;
-}
+import type { Exame } from '../domain/exame';
 
 /** Lê o CSV `id,nome,duracao_minutos` (com cabeçalho). Falha na subida se uma linha for inválida. */
 export function parseExamesCsv(texto: string): Exame[] {

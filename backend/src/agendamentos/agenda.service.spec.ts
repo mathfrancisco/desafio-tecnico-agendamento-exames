@@ -3,7 +3,7 @@ import { ExamesRepository } from '../exames/exames.repository';
 import { ExamesService } from '../exames/exames.service';
 import { MedicosRepository } from '../medicos/medicos.repository';
 import { MedicosService } from '../medicos/medicos.service';
-import { NaoEncontradoError } from '../shared/erros';
+import { NaoEncontradoError } from '../domain/erros';
 import { AgendaService } from './agenda.service';
 import { AgendamentosRepository } from './agendamentos.repository';
 

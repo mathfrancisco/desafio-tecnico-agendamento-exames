@@ -1,22 +1,18 @@
-import { Dia } from '../shared/tempo';
+import type { Medico, Turno } from '../domain/medico';
+import type { DiaSemana } from '../domain/tempo';
 
-export interface Turno {
-  dia: Dia;
-  inicio: string; // HH:MM
-  fim: string; // HH:MM
-}
-
-export interface Medico {
-  id: number;
-  nome: string;
-  crm: string;
-  turnos: Turno[];
-}
-
-const ORDEM_DIAS: Dia[] = ['SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SAB', 'DOM'];
+const ORDEM_DIAS: DiaSemana[] = [
+  'SEG',
+  'TER',
+  'QUA',
+  'QUI',
+  'SEX',
+  'SAB',
+  'DOM',
+];
 
 /** Aplica as mesmas faixas de horário a vários dias; o resultado sai ordenado por dia e início. */
-function turnos(dias: Dia[], faixas: [string, string][]): Turno[] {
+function turnos(dias: DiaSemana[], faixas: [string, string][]): Turno[] {
   return dias.flatMap((dia) =>
     faixas.map(([inicio, fim]): Turno => ({ dia, inicio, fim })),
   );
@@ -30,7 +26,7 @@ function ordenar(lista: Turno[]): Turno[] {
   );
 }
 
-const SEG_A_SEX: Dia[] = ['SEG', 'TER', 'QUA', 'QUI', 'SEX'];
+const SEG_A_SEX: DiaSemana[] = ['SEG', 'TER', 'QUA', 'QUI', 'SEX'];
 
 // Fonte: dados/medicos.md
 export const MEDICOS: Medico[] = [

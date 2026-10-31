@@ -1,9 +1,10 @@
 import { Inject, Injectable } from '@nestjs/common';
+import { Intervalo, gerarHorarios } from '../domain/gerar-horarios';
+import { turnosDoDia } from '../domain/medico';
 import { ExamesService } from '../exames/exames.service';
 import { MedicosService } from '../medicos/medicos.service';
 import { CLOCK, type Clock } from '../shared/clock';
 import { AgendamentosRepository } from './agendamentos.repository';
-import { gerarHorarios, Intervalo } from './gerar-horarios';
 
 export interface HorariosLivres {
   medicoId: number;
@@ -36,7 +37,7 @@ export class AgendaService {
     const agora = this.clock.agoraLocal();
     // Datas e horas no formato fixo comparam como texto: passado some, hoje filtra o que já foi.
     const horarios = gerarHorarios(
-      this.medicos.turnosDoDia(medico, data),
+      turnosDoDia(medico, data),
       exame.duracaoMinutos,
       ocupados,
     ).filter((h) => `${data}T${h.inicio}` > agora);

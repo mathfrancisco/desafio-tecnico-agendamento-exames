@@ -1,19 +1,8 @@
 import { Inject, Injectable } from '@nestjs/common';
 import type Database from 'better-sqlite3';
 import { DATABASE } from '../database/database.module';
-import { ConflitoError } from '../shared/erros';
-
-export interface Agendamento {
-  id: number;
-  pacienteNome: string;
-  exameId: number;
-  medicoId: number;
-  inicio: string; // YYYY-MM-DDTHH:mm, hora local da clínica
-  fim: string;
-  criadoEm: string; // ISO-8601 UTC
-}
-
-export type NovoAgendamento = Omit<Agendamento, 'id' | 'criadoEm'>;
+import { Agendamento, NovoAgendamento } from '../domain/agendamento';
+import { ConflitoError } from '../domain/erros';
 
 interface Linha {
   id: number;
