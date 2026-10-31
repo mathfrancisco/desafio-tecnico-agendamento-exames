@@ -11,5 +11,7 @@ export function config() {
     examesCsvPath:
       process.env.EXAMES_CSV_PATH ??
       path.resolve(process.cwd(), '..', 'dados', 'exames.csv'),
+    // Só em produção: pasta com o build do front para a API servir.
+    frontendDist: process.env.FRONTEND_DIST,
   };
 }
