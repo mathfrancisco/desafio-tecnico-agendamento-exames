@@ -63,7 +63,7 @@ nome e receber a confirmação.
 
 | Card | Descrição | Aceite |
 | --- | --- | --- |
-| BE-06 | `DatabaseModule` (better-sqlite3, schema na subida, `DB_PATH`, `:memory:` em teste) e `AgendamentosRepository` com `inserirSeLivre` em transação `IMMEDIATE` | Teste: inserir sobreposto lança `ConflitoError`; encostado passa |
+| BE-06 | `DatabaseModule` (better-sqlite3, schema na subida, `DB_PATH`, `:memory:` em teste) e `AgendamentosRepository` com `inserirSeLivre`; RN3 em trigger `BEFORE INSERT`, WAL ligado | Teste: inserir sobreposto lança `ConflitoError`; encostado passa; segunda conexão ao mesmo arquivo também é barrada |
 | BE-07 | `AgendamentosService.criar` + `POST /api/agendamentos` + DTO validado | 201 com `fim` derivado; 400 validação; 404 ids; 422 passado e fora da grade; 409 ocupado; testes unitários e e2e |
 | BE-08 | Teste e2e de concorrência | 10 POSTs simultâneos ao mesmo horário → exatamente um 201 e nove 409 |
 | FE-04 | `AgendamentoForm` + `Confirmacao` | Valida nome (3–100) antes de enviar; botão desabilitado durante envio; mostra resumo; "novo agendamento" reinicia o fluxo |
@@ -107,7 +107,7 @@ horários livres para o exame e médico escolhidos.
 | FE-06 | Layout: topbar (logo, busca de exame), sidebar (Agendar exame, Agendamentos), tokens de cor | Responsivo; sidebar vira barra superior/inferior no celular |
 | FE-07 | `Calendario` mensal (SEG–DOM) com `NavegacaoMes` (Hoje, <, mês, >) | Grade correta para qualquer mês; dia de hoje destacado; testes de `utils/datas` |
 | FE-08 | Tela Agendar: exame + chips de médico; células com "N livres"; dias sem vaga apagados; exames marcados do médico como `EventoCard` | Estados carregando/erro/vazio; teste |
-| FE-09 | `PainelDia`: horários do dia, nome do paciente, **Agendar** | 409 avisa e recarrega dia e mês; sucesso atualiza calendário; teste |
+| FE-09 | `PainelDia`: horários do dia, nome do paciente, **Agendar** | 409 avisa e recarrega dia e mês, mantendo o nome digitado mesmo ao trocar de dia ou médico; sucesso atualiza calendário e limpa o nome; teste |
 
 ---
 

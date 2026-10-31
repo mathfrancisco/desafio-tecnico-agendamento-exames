@@ -244,6 +244,40 @@ describe('AgendarPagina', () => {
     expect(screen.queryByRole('dialog')).toBeNull()
   })
 
+  it('409 no último horário do dia: o nome digitado continua ao abrir outro dia', async () => {
+    let horariosDo03 = [{ inicio: '08:00', fim: '08:40' }]
+    vi.stubGlobal(
+      'fetch',
+      vi.fn((url: string, init?: RequestInit) => {
+        if (url.includes('/disponibilidade')) return json(disponibilidade('2026-11'))
+        if (url.includes('/horarios')) {
+          const data = new URL(url, 'http://x').searchParams.get('data')!
+          const horarios = data === '2026-11-03' ? horariosDo03 : [{ inicio: '08:40', fim: '09:20' }]
+          return json({ medicoId: 1, exameId: 20, data, horarios })
+        }
+        if (init?.method === 'POST') {
+          horariosDo03 = []
+          return json({ statusCode: 409, error: 'Conflict', message: 'Horário indisponível' }, 409)
+        }
+        return json([])
+      }),
+    )
+    renderizar()
+    fireEvent.click(screen.getByRole('button', { name: /Helena Marques/ }))
+    fireEvent.click(await screen.findByRole('button', { name: '3 de novembro, 12 horários livres' }))
+    fireEvent.click(await screen.findByRole('button', { name: '08:00–08:40' }))
+    fireEvent.change(screen.getByLabelText('Nome do paciente'), { target: { value: 'Maria Silva' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Agendar' }))
+
+    expect(await screen.findByText(/Nenhum horário livre neste dia/)).toBeInTheDocument()
+    expect(screen.getByRole('alert')).toHaveTextContent(/acabou de ser ocupado/)
+
+    fireEvent.click(screen.getByRole('button', { name: '4 de novembro, 1 horário livre' }))
+
+    expect(await screen.findByRole('dialog', { name: /4 de novembro de 2026/ })).toBeInTheDocument()
+    expect(await screen.findByLabelText('Nome do paciente')).toHaveValue('Maria Silva')
+  })
+
   it('trocar de mês fecha o painel do dia', async () => {
     vi.stubGlobal(
       'fetch',

@@ -27,20 +27,30 @@ interface Props {
   medico: Medico
   /** `YYYY-MM-DD` */
   data: string
+  /** Nome digitado; fica com o pai para sobreviver à troca de dia ou médico (ex.: após um 409). */
+  nome: string
+  onNome: (nome: string) => void
   onFechar: () => void
   /** Chamado quando a agenda mudou (agendou ou tomou 409): o pai recarrega o mês. */
   onAtualizado: () => void
 }
 
 /** Painel de um dia: escolher horário livre, informar o paciente e agendar. */
-export default function PainelDia({ exame, medico, data, onFechar, onAtualizado }: Props) {
+export default function PainelDia({
+  exame,
+  medico,
+  data,
+  nome,
+  onNome,
+  onFechar,
+  onAtualizado,
+}: Props) {
   const id = useId()
   const [horarios, recarregarHorarios] = useRequisicao(
     () => buscarHorarios(medico.id, exame.id, data),
     `horarios|${medico.id}|${exame.id}|${data}`,
   )
   const [inicio, setInicio] = useState<string | null>(null)
-  const [nome, setNome] = useState('')
   const [tentou, setTentou] = useState(false)
   const [enviando, setEnviando] = useState(false)
   const [mensagem, setMensagem] = useState<string | null>(null)
@@ -65,6 +75,7 @@ export default function PainelDia({ exame, medico, data, onFechar, onAtualizado 
           inicio: `${data}T${inicio}`,
         }),
       )
+      onNome('')
       onAtualizado()
     } catch (erro) {
       if (erro instanceof ApiError && erro.status === 409) {
@@ -83,7 +94,6 @@ export default function PainelDia({ exame, medico, data, onFechar, onAtualizado 
   function agendarOutro() {
     setCriado(null)
     setInicio(null)
-    setNome('')
     setTentou(false)
     setMensagem(null)
     recarregarHorarios()
@@ -172,7 +182,7 @@ export default function PainelDia({ exame, medico, data, onFechar, onAtualizado 
                   id={`${id}-nome`}
                   type="text"
                   value={nome}
-                  onChange={(e) => setNome(e.target.value)}
+                  onChange={(e) => onNome(e.target.value)}
                   autoComplete="off"
                   aria-invalid={erroNome !== null}
                   aria-describedby={erroNome ? `${id}-erro-nome` : undefined}

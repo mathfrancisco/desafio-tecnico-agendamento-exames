@@ -1,4 +1,5 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import type { Exame, Medico } from '../../api/types'
 import PainelDia from './PainelDia'
@@ -57,15 +58,22 @@ function consultasDeHorarios(fetchMock: ReturnType<typeof simularApi>) {
 function renderizar() {
   const onFechar = vi.fn()
   const onAtualizado = vi.fn()
-  render(
-    <PainelDia
-      exame={exame}
-      medico={medico}
-      data="2026-11-03"
-      onFechar={onFechar}
-      onAtualizado={onAtualizado}
-    />,
-  )
+  // O nome fica com o pai (AgendarPagina); aqui um pai mínimo guarda o estado.
+  function Pai() {
+    const [nome, setNome] = useState('')
+    return (
+      <PainelDia
+        exame={exame}
+        medico={medico}
+        data="2026-11-03"
+        nome={nome}
+        onNome={setNome}
+        onFechar={onFechar}
+        onAtualizado={onAtualizado}
+      />
+    )
+  }
+  render(<Pai />)
   return { onFechar, onAtualizado }
 }
 

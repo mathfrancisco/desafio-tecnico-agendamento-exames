@@ -18,6 +18,8 @@ interface Props {
   mes: string
   /** `YYYY-MM-DD`, data de hoje no fuso local. */
   hoje: string
+  nomePaciente: string
+  onNomePaciente: (nome: string) => void
 }
 
 const EVENTOS_POR_DIA = 2
@@ -30,7 +32,15 @@ function rotuloLivres(livres: number): string {
  * Calendário do mês para um exame e um médico já escolhidos: quantos horários
  * livres cada dia tem (disponibilidade) e o que o médico já tem marcado.
  */
-export default function AgendaDoMedico({ exame, medico, exames, mes, hoje }: Props) {
+export default function AgendaDoMedico({
+  exame,
+  medico,
+  exames,
+  mes,
+  hoje,
+  nomePaciente,
+  onNomePaciente,
+}: Props) {
   const chave = `${medico.id}|${exame.id}|${mes}`
   const [disponibilidade, recarregarDisponibilidade] = useRequisicao(
     () => buscarDisponibilidade(medico.id, exame.id, mes),
@@ -114,6 +124,8 @@ export default function AgendaDoMedico({ exame, medico, exames, mes, hoje }: Pro
           exame={exame}
           medico={medico}
           data={diaAberto}
+          nome={nomePaciente}
+          onNome={onNomePaciente}
           onFechar={() => setDiaSelecionado(null)}
           onAtualizado={recarregar}
         />

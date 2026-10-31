@@ -20,6 +20,7 @@ export default function AgendarPagina({ exame, medicos, exames }: Props) {
   const [hoje] = useState(hojeLocal)
   const [mes, setMes] = useState(() => mesDe(hoje))
   const [medicoId, setMedicoId] = useState<number | null>(null)
+  const [nomePaciente, setNomePaciente] = useState('')
   const medico = medicos.find((m) => m.id === medicoId) ?? null
   const mesAtual = mesDe(hoje)
 
@@ -67,6 +68,8 @@ export default function AgendarPagina({ exame, medicos, exames }: Props) {
           exames={exames}
           mes={mes}
           hoje={hoje}
+          nomePaciente={nomePaciente}
+          onNomePaciente={setNomePaciente}
         />
       ) : (
         <>
