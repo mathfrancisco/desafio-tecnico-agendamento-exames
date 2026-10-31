@@ -23,6 +23,7 @@ O enunciado original está em [docs/desafio.md](docs/desafio.md).
 | [03 — Modelagem de dados](docs/03-modelagem-dados.md) | Entidades, schema SQLite, contrato da API |
 | [04 — Regras de negócio](docs/04-regras-negocio.md) | Regras do enunciado e premissas adotadas |
 | [05 — Planejamento](docs/05-planejamento.md) | Specs quebradas em cards, com critérios de aceite |
+| [06 — Deploy](docs/06-deploy.md) | Imagem Docker única e passo a passo no Northflank |
 
 ## Pré-requisitos
 
