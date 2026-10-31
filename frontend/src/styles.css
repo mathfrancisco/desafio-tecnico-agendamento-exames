@@ -878,6 +878,27 @@ button.eventos__mais {
   font-size: 0.875rem;
 }
 
+.botao--perigo-suave {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background: var(--erro-fundo);
+  color: var(--erro);
+}
+
+.botao--perigo-suave:hover {
+  background: #fde4e0;
+}
+
+.confirmar-cancelamento {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 0.875rem;
+  background: var(--erro-fundo);
+  border-radius: var(--raio-medio);
+  font-size: 0.875rem;
+}
+
 /* ---------- Telas estreitas ---------- */
 @media (max-width: 860px) {
   .app {

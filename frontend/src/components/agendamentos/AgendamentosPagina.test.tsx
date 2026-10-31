@@ -173,4 +173,41 @@ describe('AgendamentosPagina', () => {
 
     expect(screen.getByText('Paciente 5')).toBeInTheDocument()
   })
+
+  it('clicar num exame abre o painel; cancelar remove o exame do calendário', async () => {
+    let lista = [...doMes]
+    const fetchMock = vi.fn((_url: string, init?: RequestInit) => {
+      if (init?.method === 'DELETE') {
+        lista = lista.filter((a) => a.id !== 1)
+        return Promise.resolve(new Response(null, { status: 204 }))
+      }
+      return json(lista)
+    })
+    vi.stubGlobal('fetch', fetchMock)
+    renderizar()
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Raio-X de Tórax, Maria Silva, 08:00' }))
+
+    const painel = screen.getByRole('dialog', { name: 'Raio-X de Tórax' })
+    expect(within(painel).getByText('Dra. Helena Marques (CRM-MG 11111)')).toBeInTheDocument()
+    fireEvent.click(within(painel).getByRole('button', { name: 'Cancelar agendamento' }))
+    fireEvent.click(within(painel).getByRole('button', { name: 'Sim, cancelar agendamento' }))
+
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+    await waitFor(() => expect(screen.queryByText('Maria Silva')).toBeNull())
+    expect(fetchMock).toHaveBeenCalledWith('/api/agendamentos/1', { method: 'DELETE' })
+    expect(screen.getByText('João Pereira')).toBeInTheDocument()
+  })
+
+  it('trocar o filtro fecha o painel aberto', async () => {
+    simularApi()
+    renderizar()
+    fireEvent.click(await screen.findByRole('button', { name: 'Raio-X de Tórax, Maria Silva, 08:00' }))
+    expect(screen.getByRole('dialog')).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Dr. Thiago Fontes' }))
+
+    expect(screen.queryByRole('dialog')).toBeNull()
+    await screen.findByText('João Pereira')
+  })
 })

@@ -10,6 +10,7 @@ import EventosDoDia from '../calendario/EventosDoDia'
 import NavegacaoMes from '../calendario/NavegacaoMes'
 import SeletorMedico from '../calendario/SeletorMedico'
 import ErroRetry from '../layout/ErroRetry'
+import PainelAgendamento from './PainelAgendamento'
 
 interface Props {
   medicos: Medico[]
@@ -31,6 +32,16 @@ export default function AgendamentosPagina({ medicos, exames }: Props) {
   const porDia = agruparPorDia(agendamentos.status === 'ok' ? agendamentos.dados : [])
   const nomeDoExame = nomeDoExamePor(exames)
   const medicoFiltrado = medicos.find((m) => m.id === medicoId)
+
+  const selecionado =
+    agendamentos.status === 'ok'
+      ? (agendamentos.dados.find((a) => a.id === selecionadoId) ?? null)
+      : null
+
+  function cancelado() {
+    setSelecionadoId(null)
+    recarregar()
+  }
 
   function mudarMes(novo: string) {
     setMes(novo)
@@ -91,6 +102,16 @@ export default function AgendamentosPagina({ medicos, exames }: Props) {
           </DiaCelula>
         )}
       />
+      {selecionado && (
+        <PainelAgendamento
+          key={selecionado.id}
+          agendamento={selecionado}
+          exame={exames.find((e) => e.id === selecionado.exameId)}
+          medico={medicos.find((m) => m.id === selecionado.medicoId)}
+          onFechar={() => setSelecionadoId(null)}
+          onCancelado={cancelado}
+        />
+      )}
     </>
   )
 }
