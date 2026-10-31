@@ -204,4 +204,67 @@ describe('AgendarPagina', () => {
     expect(await screen.findByText('12 horários livres')).toBeInTheDocument()
     expect(screen.queryByRole('alert')).toBeNull()
   })
+
+  it('clicar num dia abre o painel; agendar atualiza o mês e Esc fecha o painel', async () => {
+    const fetchMock = vi.fn((url: string, init?: RequestInit) => {
+      if (url.startsWith('/api/medicos/1/disponibilidade?')) return json(disponibilidade('2026-11'))
+      if (url.startsWith('/api/medicos/1/horarios?')) {
+        return json({
+          medicoId: 1,
+          exameId: 20,
+          data: '2026-11-03',
+          horarios: [{ inicio: '08:00', fim: '08:40' }],
+        })
+      }
+      if (url === '/api/agendamentos' && init?.method === 'POST') {
+        return json({ ...marcado(9, '03 08:00', 'Maria Silva', 20), fim: '2026-11-03T08:40' }, 201)
+      }
+      if (url.startsWith('/api/agendamentos?')) return json(agendamentos)
+      return Promise.reject(new Error(`URL inesperada: ${url}`))
+    })
+    vi.stubGlobal('fetch', fetchMock)
+    const chamadas = (parte: string) =>
+      fetchMock.mock.calls.filter(([url]) => String(url).includes(parte)).length
+    renderizar()
+    fireEvent.click(screen.getByRole('button', { name: /Helena Marques/ }))
+    await screen.findByText('12 horários livres')
+
+    fireEvent.click(screen.getByRole('button', { name: '3 de novembro, 12 horários livres' }))
+
+    expect(screen.getByRole('dialog', { name: /3 de novembro de 2026/ })).toBeInTheDocument()
+    fireEvent.click(await screen.findByRole('button', { name: '08:00–08:40' }))
+    fireEvent.change(screen.getByLabelText('Nome do paciente'), { target: { value: 'Maria Silva' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Agendar' }))
+
+    expect(await screen.findByText('Agendamento confirmado')).toBeInTheDocument()
+    await waitFor(() => expect(chamadas('/disponibilidade')).toBe(2))
+    await waitFor(() => expect(chamadas('/api/agendamentos?')).toBe(2))
+
+    fireEvent.keyDown(document.body, { key: 'Escape' })
+    expect(screen.queryByRole('dialog')).toBeNull()
+  })
+
+  it('trocar de mês fecha o painel do dia', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn((url: string) => {
+        if (url.includes('/disponibilidade')) {
+          return json(disponibilidade(new URL(url, 'http://x').searchParams.get('mes')!))
+        }
+        if (url.includes('/horarios')) {
+          return json({ medicoId: 1, exameId: 20, data: '2026-11-03', horarios: [] })
+        }
+        return json([])
+      }),
+    )
+    renderizar()
+    fireEvent.click(screen.getByRole('button', { name: /Helena Marques/ }))
+    fireEvent.click(await screen.findByRole('button', { name: '3 de novembro, 12 horários livres' }))
+    expect(screen.getByRole('dialog')).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Próximo mês' }))
+
+    expect(screen.queryByRole('dialog')).toBeNull()
+    await screen.findByText(/Nenhum horário livre em Dezembro de 2026/)
+  })
 })

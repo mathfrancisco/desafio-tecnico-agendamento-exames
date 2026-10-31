@@ -3,11 +3,12 @@ import { buscarDisponibilidade, listarAgendamentos } from '../../api/client'
 import type { Exame, Medico } from '../../api/types'
 import { useRequisicao } from '../../hooks/useRequisicao'
 import { agruparPorDia, nomeDoExamePor } from '../../utils/agendamentos'
-import { formatarDiaMes, nomeDoMes } from '../../utils/datas'
+import { formatarDiaMes, mesDe, nomeDoMes } from '../../utils/datas'
 import Calendario from '../calendario/Calendario'
 import DiaCelula from '../calendario/DiaCelula'
 import EventosDoDia from '../calendario/EventosDoDia'
 import ErroRetry from '../layout/ErroRetry'
+import PainelDia from './PainelDia'
 
 interface Props {
   exame: Exame
@@ -40,6 +41,8 @@ export default function AgendaDoMedico({ exame, medico, exames, mes, hoje }: Pro
     `marcados|${chave}`,
   )
   const [diaSelecionado, setDiaSelecionado] = useState<string | null>(null)
+  // trocar de mês fecha o painel do dia aberto
+  const diaAberto = diaSelecionado !== null && mesDe(diaSelecionado) === mes ? diaSelecionado : null
 
   const livres =
     disponibilidade.status === 'ok'
@@ -75,7 +78,7 @@ export default function AgendaDoMedico({ exame, medico, exames, mes, hoje }: Pro
               data={data}
               hoje={data === hoje}
               apagado={data < hoje || (livres !== null && quantidade === 0)}
-              selecionado={data === diaSelecionado}
+              selecionado={data === diaAberto}
               acao={
                 aberto
                   ? {
@@ -98,6 +101,16 @@ export default function AgendaDoMedico({ exame, medico, exames, mes, hoje }: Pro
           )
         }}
       />
+      {diaAberto && (
+        <PainelDia
+          key={diaAberto}
+          exame={exame}
+          medico={medico}
+          data={diaAberto}
+          onFechar={() => setDiaSelecionado(null)}
+          onAtualizado={recarregar}
+        />
+      )}
     </>
   )
 }
