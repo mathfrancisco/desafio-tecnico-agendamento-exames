@@ -180,3 +180,18 @@ fieldset:disabled {
 .campo {
   margin-top: 1rem;
 }
+
+.grade-horarios {
+  list-style: none;
+  margin: 0.75rem 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(8.5rem, 1fr));
+  gap: 0.5rem;
+}
+
+.opcao.horario {
+  justify-content: center;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
