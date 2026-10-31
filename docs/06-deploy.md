@@ -34,7 +34,19 @@ Abra `http://localhost:3000`. Swagger em `/api/docs`, health em `/api/health`.
 
 ## Northflank
 
-Serviço combinado (build + deploy) a partir do repositório GitHub.
+No ar em https://p01--agenda-imagem--4cj5fhqhqb2r.code.run (serviço
+`agenda-imagem`, projeto `Default`, plano gratuito, US - Central).
+
+Estado atual do deploy:
+
+- Repositório ligado como **repo público**, sem a GitHub App do Northflank:
+  novos commits não disparam build sozinhos. Para atualizar, use *Start build*
+  no serviço, ou dê à GitHub App acesso a este repositório.
+- **Sem volume**: volumes são cobrados à parte. Sem `/data` persistente, o
+  SQLite vive no disco do container e é zerado a cada deploy.
+- Readiness probe HTTP em `/api/health`, porta `3000`.
+
+Passo a passo para recriar (serviço combinado a partir do repositório GitHub):
 
 1. **Projeto**: crie um projeto (qualquer região).
 2. **Serviço**: *Create new → Service → Combined service*.

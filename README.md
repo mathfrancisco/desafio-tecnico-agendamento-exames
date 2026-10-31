@@ -6,6 +6,11 @@ Aplicação full-stack para buscar um exame, ver no calendário os dias e
 horários livres de um médico, agendar e cancelar. Back-end em NestJS com
 Clean Architecture, front-end em React + Vite, num monorepo.
 
+**Demo:** https://p01--agenda-imagem--4cj5fhqhqb2r.code.run
+(Swagger em [/api/docs](https://p01--agenda-imagem--4cj5fhqhqb2r.code.run/api/docs)).
+Hospedado no plano gratuito do Northflank: o banco não tem volume persistente,
+então os agendamentos da demo somem a cada novo deploy.
+
 O enunciado original está em [docs/desafio.md](docs/desafio.md).
 
 ![Calendário com horários livres e painel de agendamento](docs/img/painel-dia.png)
