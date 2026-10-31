@@ -13,6 +13,9 @@ interface Linha {
   criado_em: string;
 }
 
+// Código que o better-sqlite3 dá ao RAISE(ABORT) do trigger agendamentos_sem_sobreposicao.
+const SOBREPOSICAO = 'SQLITE_CONSTRAINT_TRIGGER';
+
 const paraAgendamento = (l: Linha): Agendamento => ({
   id: l.id,
   pacienteNome: l.paciente_nome,
@@ -24,7 +27,6 @@ const paraAgendamento = (l: Linha): Agendamento => ({
 });
 
 export class AgendamentosSqliteRepository implements AgendamentosRepository {
-  private readonly sobreposto: Database.Statement<[number, string, string]>;
   private readonly inserir: Database.Statement<
     [string, number, number, string, string, string]
   >;
@@ -33,16 +35,8 @@ export class AgendamentosSqliteRepository implements AgendamentosRepository {
   >;
   private readonly porId: Database.Statement<[number]>;
   private readonly apagar: Database.Statement<[number]>;
-  private readonly inserirAtomico: Database.Transaction<
-    (novo: NovoAgendamento) => Agendamento
-  >;
 
   constructor(db: Database.Database) {
-    this.sobreposto = db.prepare(
-      `SELECT 1 FROM agendamentos
-        WHERE medico_id = ? AND inicio < ? AND fim > ?
-        LIMIT 1`,
-    );
     this.inserir = db.prepare(
       `INSERT INTO agendamentos
          (paciente_nome, exame_id, medico_id, inicio, fim, criado_em)
@@ -56,14 +50,12 @@ export class AgendamentosSqliteRepository implements AgendamentosRepository {
     );
     this.porId = db.prepare('SELECT * FROM agendamentos WHERE id = ?');
     this.apagar = db.prepare('DELETE FROM agendamentos WHERE id = ?');
+  }
 
-    // BEGIN IMMEDIATE: o lock de escrita é tomado antes da checagem, então
-    // checar e inserir formam uma unidade indivisível mesmo entre processos.
-    this.inserirAtomico = db.transaction((novo: NovoAgendamento) => {
-      if (this.sobreposto.get(novo.medicoId, novo.fim, novo.inicio)) {
-        throw new ConflitoError('Horário indisponível para este médico');
-      }
-      const criadoEm = new Date().toISOString();
+  /** A checagem de sobreposição é do trigger no banco; aqui só traduz o erro. */
+  inserirSeLivre(novo: NovoAgendamento): Agendamento {
+    const criadoEm = new Date().toISOString();
+    try {
       const { lastInsertRowid } = this.inserir.run(
         novo.pacienteNome,
         novo.exameId,
@@ -73,11 +65,12 @@ export class AgendamentosSqliteRepository implements AgendamentosRepository {
         criadoEm,
       );
       return { id: Number(lastInsertRowid), ...novo, criadoEm };
-    });
-  }
-
-  inserirSeLivre(novo: NovoAgendamento): Agendamento {
-    return this.inserirAtomico.immediate(novo);
+    } catch (erro) {
+      if ((erro as { code?: unknown }).code === SOBREPOSICAO) {
+        throw new ConflitoError('Horário indisponível para este médico');
+      }
+      throw erro;
+    }
   }
 
   listarPorPeriodo(

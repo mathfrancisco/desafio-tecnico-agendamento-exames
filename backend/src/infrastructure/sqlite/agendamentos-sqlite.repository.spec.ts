@@ -1,3 +1,7 @@
+import { mkdtempSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import * as path from 'node:path';
+import type Database from 'better-sqlite3';
 import { criarBanco } from './database';
 import { NovoAgendamento } from '../../domain/agendamento';
 import { ConflitoError } from '../../domain/erros';
@@ -122,5 +126,52 @@ describe('AgendamentosSqliteRepository', () => {
 
   it('remover id inexistente não falha', () => {
     expect(() => repository.remover(999)).not.toThrow();
+  });
+});
+
+// Simula dois processos da API apontando para o mesmo arquivo: cada um com a sua conexão.
+describe('AgendamentosSqliteRepository com duas conexões ao mesmo arquivo', () => {
+  let pasta: string;
+  let conexoes: Database.Database[];
+
+  beforeEach(() => {
+    pasta = mkdtempSync(path.join(tmpdir(), 'agendamentos-'));
+    const arquivo = path.join(pasta, 'agendamentos.db');
+    conexoes = [criarBanco(arquivo), criarBanco(arquivo)];
+  });
+
+  afterEach(() => {
+    conexoes.forEach((db) => db.close());
+    rmSync(pasta, { recursive: true, force: true });
+  });
+
+  it('usa WAL, para leituras não esperarem por escritas', () => {
+    expect(conexoes[0].pragma('journal_mode', { simple: true })).toBe('wal');
+  });
+
+  it('a regra de sobreposição vale entre conexões: só a primeira insere', () => {
+    const [a, b] = conexoes.map((db) => new AgendamentosSqliteRepository(db));
+    a.inserirSeLivre(novo({}));
+
+    expect(() =>
+      b.inserirSeLivre(
+        novo({ inicio: '2026-11-03T09:40', fim: '2026-11-03T10:20' }),
+      ),
+    ).toThrow(ConflitoError);
+    expect(b.listarPorPeriodo(1, '2026-11-03', '2026-11-03')).toHaveLength(1);
+  });
+
+  it('INSERT direto no banco, fora do repositório, também é barrado', () => {
+    new AgendamentosSqliteRepository(conexoes[0]).inserirSeLivre(novo({}));
+
+    expect(() =>
+      conexoes[1]
+        .prepare(
+          `INSERT INTO agendamentos
+             (paciente_nome, exame_id, medico_id, inicio, fim, criado_em)
+           VALUES ('Outro', 7, 1, '2026-11-03T09:00', '2026-11-03T09:40', 'x')`,
+        )
+        .run(),
+    ).toThrow('agendamento sobreposto');
   });
 });

@@ -72,14 +72,14 @@ Abra `http://localhost:5173`. O Vite encaminha `/api` para
 
 ```bash
 cd backend
-npm test            # unitários: domínio, use cases com ports falsos, adapters (94)
+npm test            # unitários: domínio, use cases com ports falsos, adapters (97)
 npm run test:e2e    # rotas HTTP, incluindo 10 pedidos concorrentes (82)
 npm run test:all    # os dois
 ```
 
 ```bash
 cd frontend
-npm test            # componentes, utilitários e cliente da API (100)
+npm test            # componentes, utilitários e cliente da API (101)
 ```
 
 A CI (GitHub Actions) roda lint, build e todos os testes das duas pontas em
@@ -142,9 +142,11 @@ Ajuste as datas para dias futuros: datas no passado retornam lista vazia ou 422.
   `/horarios`, `/disponibilidade` e pela validação do `POST`, então a API
   aceita exatamente o que oferece e as regras não divergem.
 - **Relógio como port** (`Clock`): regra "sem passado" testável com hora fixa.
-- **SQLite (better-sqlite3)**: zero instalação; transação `IMMEDIATE` com
-  checagem de sobreposição antes do `INSERT` impede agendamento duplicado sob
-  concorrência (há teste com 10 pedidos simultâneos).
+- **SQLite (better-sqlite3)**: zero instalação; um trigger `BEFORE INSERT`
+  barra intervalos sobrepostos no próprio banco, então nem pedidos simultâneos
+  nem um segundo processo geram agendamento duplicado (há teste com 10 pedidos
+  simultâneos e com duas conexões ao mesmo arquivo). WAL ligado para leituras
+  não esperarem escritas.
 - **Catálogos em memória**: exames lidos do CSV fornecido; médicos declarados
   em código a partir de `dados/medicos.md`.
 - **Vite** no front: build simples e proxy para a API; sem SSR, sem roteador,

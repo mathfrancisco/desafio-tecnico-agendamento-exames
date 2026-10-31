@@ -23,7 +23,7 @@ sempre contados a partir do início do turno.
 
 **RN3 — Sem sobreposição.** Um médico não tem dois agendamentos cujos
 intervalos `[inicio, fim)` se cruzem. Intervalos que apenas encostam são
-permitidos. Garantido no banco dentro de transação (ver arquitetura).
+permitidos. Garantido no próprio banco por um trigger (ver arquitetura).
 
 **RN4 — Dentro do expediente.** Só se agenda em dia e turno do médico.
 

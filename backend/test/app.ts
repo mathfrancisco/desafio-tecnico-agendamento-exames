@@ -27,6 +27,8 @@ export async function criarApp(
     .compile();
   const app = modulo.createNestApplication();
   configurarApp(app);
-  await app.init();
+  // Porta efêmera: o supertest reaproveita o servidor já escutando em vez de
+  // abrir um por requisição (evita MaxListenersExceededWarning com 10 pedidos simultâneos).
+  await app.listen(0);
   return app;
 }

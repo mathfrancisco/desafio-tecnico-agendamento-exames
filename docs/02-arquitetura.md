@@ -104,15 +104,23 @@ Corpo: `{ "statusCode": 409, "error": "Conflict", "message": "..." }`.
 
 ### Concorrência
 
-A inserção roda dentro de `db.transaction(...).immediate()`:
+A RN3 é uma regra do próprio banco: o trigger `agendamentos_sem_sobreposicao`
+(`BEFORE INSERT`) procura um agendamento do mesmo médico cujo intervalo cruze o
+novo e, se achar, aborta o `INSERT` com `RAISE(ABORT)`. O repositório só faz o
+`INSERT` e traduz esse erro (`SQLITE_CONSTRAINT_TRIGGER`) em `ConflitoError`.
 
-1. `BEGIN IMMEDIATE` obtém o lock de escrita do SQLite.
-2. `SELECT` procura agendamento do mesmo médico cujo intervalo cruze o novo.
-3. Se existir, lança `ConflitoError`; senão, `INSERT`.
+- Checagem e escrita são um único comando SQL. O SQLite toma o lock de escrita
+  no início do comando e só uma escrita roda por vez no arquivo, então não há
+  janela entre "checar" e "inserir", nem entre processos.
+- Vale para qualquer escrita, não só para a API: um `INSERT` manual ou um
+  segundo processo apontando para o mesmo arquivo também é barrado.
+- `journal_mode = WAL`: leituras (`/horarios`, `/disponibilidade`) não esperam
+  por uma escrita em curso. Escritas concorrentes esperam o lock até 5 s
+  (`timeout` padrão do better-sqlite3) em vez de falhar na hora.
 
-O better-sqlite3 é síncrono, então dentro do processo não há `await` entre a
-checagem e a inserção; entre processos o lock `IMMEDIATE` serializa as escritas.
-De N pedidos simultâneos para o mesmo horário, exatamente um vence. Há teste e2e.
+Testes: e2e com 10 POSTs simultâneos ao mesmo horário (exatamente um 201 e nove
+409) e teste do repositório com duas conexões ao mesmo arquivo, simulando dois
+processos.
 
 ### Operação
 
@@ -129,7 +137,9 @@ Duas telas trocadas por estado (sem roteador, YAGNI):
   navegação de mês (Hoje, <, mês, >). O calendário mostra, por dia, quantos
   horários livres há e os exames já marcados daquele médico. Dias sem
   expediente ou passados ficam apagados. Clicar num dia abre um painel lateral
-  com os horários livres, o nome do paciente e o botão **Agendar**.
+  com os horários livres, o nome do paciente e o botão **Agendar**. O nome
+  fica guardado na tela (não no painel): depois de um 409 o usuário escolhe
+  outro dia ou médico sem redigitar; ele é limpo após um agendamento criado.
 - **Agendamentos**: calendário do mês com todos os exames marcados (filtro por
   médico). Clicar num exame abre o painel com detalhes e **Cancelar**.
 

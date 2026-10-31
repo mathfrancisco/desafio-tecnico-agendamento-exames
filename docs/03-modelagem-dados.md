@@ -51,7 +51,24 @@ CREATE TABLE IF NOT EXISTS agendamentos (
 
 CREATE INDEX IF NOT EXISTS idx_agendamentos_medico_inicio
   ON agendamentos (medico_id, inicio);
+
+-- RN3: aborta o INSERT que cruza outro agendamento do mesmo médico.
+CREATE TRIGGER IF NOT EXISTS agendamentos_sem_sobreposicao
+BEFORE INSERT ON agendamentos
+WHEN EXISTS (
+  SELECT 1 FROM agendamentos
+   WHERE medico_id = NEW.medico_id
+     AND inicio < NEW.fim
+     AND fim > NEW.inicio
+)
+BEGIN
+  SELECT RAISE(ABORT, 'agendamento sobreposto');
+END;
 ```
+
+A conexão liga `journal_mode = WAL` na subida (ver arquitetura, Concorrência).
+Não há `UPDATE` de agendamento (cancelar apaga, PR9), por isso o trigger cobre
+só o `INSERT`.
 
 Sem chave estrangeira para exame/médico: eles não estão no banco (catálogo
 fixo em memória). A integridade é garantida no service, que valida os ids antes
@@ -62,13 +79,8 @@ de inserir.
 Dois intervalos `[a1, a2)` e `[b1, b2)` se cruzam quando `a1 < b2 AND b1 < a2`.
 Intervalos encostados (um termina 09:20, outro começa 09:20) **não** se cruzam.
 
-```sql
-SELECT 1 FROM agendamentos
- WHERE medico_id = :medicoId
-   AND inicio < :fim
-   AND fim    > :inicio
- LIMIT 1;
-```
+É o `WHEN EXISTS (...)` do trigger acima, com `NEW` sendo o agendamento novo.
+O índice `(medico_id, inicio)` atende essa busca.
 
 ## Contrato da API
 
