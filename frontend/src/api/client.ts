@@ -1,5 +1,6 @@
 import type {
   Agendamento,
+  Disponibilidade,
   Exame,
   HorariosDoDia,
   Medico,
@@ -48,6 +49,7 @@ async function requisitar<T>(caminho: string, init?: RequestInit): Promise<T> {
   if (!resposta.ok) {
     throw new ApiError(resposta.status, await lerMensagem(resposta))
   }
+  if (resposta.status === 204) return undefined as T
   return (await resposta.json()) as T
 }
 
@@ -68,6 +70,26 @@ export function buscarHorarios(
 ): Promise<HorariosDoDia> {
   const consulta = new URLSearchParams({ data, exameId: String(exameId) })
   return requisitar<HorariosDoDia>(`/medicos/${medicoId}/horarios?${consulta}`)
+}
+
+export function buscarDisponibilidade(
+  medicoId: number,
+  exameId: number,
+  mes: string,
+): Promise<Disponibilidade> {
+  const consulta = new URLSearchParams({ mes, exameId: String(exameId) })
+  return requisitar<Disponibilidade>(`/medicos/${medicoId}/disponibilidade?${consulta}`)
+}
+
+/** Agendamentos do mês (`YYYY-MM`), opcionalmente de um único médico. */
+export function listarAgendamentos(mes: string, medicoId?: number): Promise<Agendamento[]> {
+  const consulta = new URLSearchParams({ mes })
+  if (medicoId !== undefined) consulta.set('medicoId', String(medicoId))
+  return requisitar<Agendamento[]>(`/agendamentos?${consulta}`)
+}
+
+export function cancelarAgendamento(id: number): Promise<void> {
+  return requisitar<void>(`/agendamentos/${id}`, { method: 'DELETE' })
 }
 
 export function criarAgendamento(dados: NovoAgendamento): Promise<Agendamento> {

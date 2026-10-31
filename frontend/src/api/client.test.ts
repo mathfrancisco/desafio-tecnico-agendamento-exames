@@ -2,8 +2,11 @@ import { describe, expect, it, vi } from 'vitest'
 import {
   ApiError,
   buscarExames,
+  buscarDisponibilidade,
   buscarHorarios,
+  cancelarAgendamento,
   criarAgendamento,
+  listarAgendamentos,
   mensagemDeErro,
 } from './client'
 
@@ -49,6 +52,59 @@ describe('client', () => {
       '/api/medicos/2/horarios?data=2026-11-03&exameId=7',
       undefined,
     )
+  })
+
+  it('monta a URL de disponibilidade com mês e exame', async () => {
+    const fetchMock = vi.fn(() => respostaJson({ dias: [] }))
+    vi.stubGlobal('fetch', fetchMock)
+
+    await buscarDisponibilidade(3, 7, '2026-11')
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      '/api/medicos/3/disponibilidade?mes=2026-11&exameId=7',
+      undefined,
+    )
+  })
+
+  it('lista agendamentos do mês, com e sem filtro de médico', async () => {
+    const fetchMock = vi.fn(() => respostaJson([]))
+    vi.stubGlobal('fetch', fetchMock)
+
+    await listarAgendamentos('2026-11')
+    await listarAgendamentos('2026-11', 2)
+
+    expect(fetchMock).toHaveBeenNthCalledWith(1, '/api/agendamentos?mes=2026-11', undefined)
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      2,
+      '/api/agendamentos?mes=2026-11&medicoId=2',
+      undefined,
+    )
+  })
+
+  it('cancela com DELETE e aceita resposta 204 sem corpo', async () => {
+    const fetchMock = vi.fn(() => Promise.resolve(new Response(null, { status: 204 })))
+    vi.stubGlobal('fetch', fetchMock)
+
+    await expect(cancelarAgendamento(12)).resolves.toBeUndefined()
+
+    expect(fetchMock).toHaveBeenCalledWith('/api/agendamentos/12', { method: 'DELETE' })
+  })
+
+  it('cancelar propaga a mensagem do 422', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(() =>
+        respostaJson(
+          { statusCode: 422, error: 'Unprocessable Entity', message: 'Agendamento já iniciado' },
+          422,
+        ),
+      ),
+    )
+
+    await expect(cancelarAgendamento(1)).rejects.toMatchObject({
+      status: 422,
+      message: 'Agendamento já iniciado',
+    })
   })
 
   it('envia o agendamento como JSON via POST', async () => {
