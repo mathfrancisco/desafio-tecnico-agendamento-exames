@@ -27,6 +27,8 @@ próprio `package.json`; não há ferramenta de workspace (não é necessária).
 | better-sqlite3 | 12.x | SQLite embutido, sem servidor; API síncrona e transações `IMMEDIATE` garantem que dois pedidos simultâneos não gerem agendamento duplicado |
 | class-validator / class-transformer | latest | Validação declarativa dos DTOs via `ValidationPipe` |
 | Jest + Supertest | padrão Nest | Testes unitários e e2e |
+| @nestjs/swagger | 11.x | Contrato navegável em `/api/docs`, gerado do próprio código |
+| GitHub Actions | — | CI com lint, build e testes das duas pontas |
 
 Por que SQLite e não Postgres/Mongo: zero instalação para quem avalia (o banco é
 um arquivo criado na primeira execução) e transação serializada suficiente para

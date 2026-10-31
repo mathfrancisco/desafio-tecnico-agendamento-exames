@@ -124,3 +124,48 @@ Resposta 201:
 
 Erros: 400 (validação), 404 (exame/médico), 422 (passado/fora da grade),
 409 (horário ocupado).
+
+### `GET /api/medicos/:medicoId/disponibilidade?mes=YYYY-MM&exameId=<id>`
+
+Total de horários livres por dia do mês, para o calendário. Mesma regra de
+`/horarios` aplicada a cada dia (uma consulta ao banco para o mês inteiro).
+
+```json
+{
+  "medicoId": 1, "exameId": 7, "mes": "2026-11",
+  "dias": [
+    { "data": "2026-11-01", "livres": 0 },
+    { "data": "2026-11-02", "livres": 12 }
+  ]
+}
+```
+
+- `dias` traz todos os dias do mês, em ordem. Dia sem turno ou passado: `livres: 0`.
+- Médico ou exame inexistente: 404. `mes`/`exameId` inválidos: 400.
+
+### `GET /api/agendamentos?mes=YYYY-MM[&medicoId=<id>]`
+
+Agendamentos do mês, ordenados por `inicio`. `medicoId` opcional filtra por médico.
+
+```json
+[{
+  "id": 1, "pacienteNome": "Maria Silva", "exameId": 7, "medicoId": 1,
+  "inicio": "2026-11-03T08:00", "fim": "2026-11-03T08:40",
+  "criadoEm": "2026-10-31T15:00:00.000Z"
+}]
+```
+
+`mes` inválido ou ausente: 400. Médico inexistente no filtro: 404.
+
+### `DELETE /api/agendamentos/:id`
+
+Cancela (remove) o agendamento e libera o horário. Resposta 204 sem corpo.
+Inexistente: 404. Já iniciado ou passado: 422.
+
+### `GET /api/health`
+
+`{ "status": "ok" }` (200) quando o banco responde.
+
+### `GET /api/docs`
+
+Swagger UI com o contrato acima.

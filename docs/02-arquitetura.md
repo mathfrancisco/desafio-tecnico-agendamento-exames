@@ -8,74 +8,99 @@
                                    +--> catálogo em memória (exames.csv, médicos)
 ```
 
-## Back-end
+## Back-end: Clean Architecture
 
-Um módulo Nest por assunto. Cada módulo segue a mesma divisão simples:
+Quatro camadas. A regra de dependência aponta sempre para dentro:
+`http -> application -> domain` e `infrastructure -> application -> domain`.
 
-- **controller**: HTTP apenas (rota, DTO, status). Sem regra de negócio.
-- **service**: casos de uso e regras.
-- **repository**: acesso a dados (CSV, constante em código ou SQLite).
-- **funções puras de domínio**: o núcleo da regra (geração de horários) não
-  depende de Nest, banco nem relógio, e é testado isoladamente.
+```
+         +-------------------------------------------+
+         | http (Nest: controllers, DTOs, filtro)    |
+         |   +-----------------------------------+   |
+         |   | application (use cases + ports)   |   |
+         |   |   +---------------------------+   |   |
+         |   |   | domain (entidades, regras)|   |   |
+         |   |   +---------------------------+   |   |
+         |   +-----------------------------------+   |
+         | infrastructure (SQLite, CSV, relógio)     |
+         +-------------------------------------------+
+```
+
+| Camada | Pode importar | Não pode importar |
+| --- | --- | --- |
+| `domain` | nada além de TypeScript | Nest, better-sqlite3, outras camadas |
+| `application` | `domain` | Nest, better-sqlite3, `infrastructure`, `http` |
+| `infrastructure` | `application` (ports), `domain`, libs de I/O | `http` |
+| `http` | `application`, `domain`, Nest | `infrastructure` (só o módulo de composição liga as peças) |
+
+A regra é verificada pelo ESLint (`no-restricted-imports` em `domain/` e
+`application/`): violar a arquitetura quebra o lint e a CI.
 
 ```
 backend/src/
-  main.ts                      bootstrap, prefixo /api, ValidationPipe, filtro de erros
-  app.module.ts
-  config.ts                    PORT, DB_PATH, EXAMES_CSV_PATH, fuso da clínica
-  shared/
-    clock.ts                   token CLOCK + SystemClock (hora local America/Sao_Paulo)
-    tempo.ts                   conversões HH:MM <-> minutos, dia da semana de uma data
-    erros.ts                   NaoEncontradoError, RegraNegocioError, ConflitoError
-    erros.filter.ts            traduz erros de domínio em 404 / 422 / 409
-  database/
-    database.module.ts         provê a conexão better-sqlite3 e cria o schema
-  exames/
-    exames.repository.ts       lê o CSV uma vez
-    exames.service.ts          buscar por nome, obter por id
-    exames.controller.ts       GET /api/exames
-  medicos/
-    medicos.data.ts            os 5 médicos e seus turnos
-    medicos.repository.ts
-    medicos.service.ts
-    medicos.controller.ts      GET /api/medicos
-  agendamentos/
-    gerar-horarios.ts          função pura: turnos + duração + ocupados -> horários livres
-    agenda.service.ts          horários livres de um médico/exame/data
-    agenda.controller.ts       GET /api/medicos/:medicoId/horarios
-    agendamentos.repository.ts SQLite; inserção atômica com checagem de sobreposição
-    agendamentos.service.ts    criar agendamento aplicando as regras
-    agendamentos.controller.ts POST /api/agendamentos
-    dto/
+  main.ts                         bootstrap
+  app.module.ts                   composição: liga ports a adapters e use cases a controllers
+  config.ts                       PORT, DB_PATH, EXAMES_CSV_PATH, fuso da clínica
+  domain/
+    exame.ts                      tipo Exame
+    medico.ts                     Medico, Turno, DiaSemana, turnosDoDia(medico, data)
+    agendamento.ts                Agendamento; fim derivado de inicio + duração
+    gerar-horarios.ts             núcleo puro da RN2
+    tempo.ts                      HH:MM <-> minutos, dia da semana, dias do mês
+    erros.ts                      NaoEncontradoError, RegraNegocioError, ConflitoError
+  application/
+    ports/
+      exames.repository.ts        interface + token
+      medicos.repository.ts
+      agendamentos.repository.ts  inserirSeLivre, listarPorPeriodo, obter, remover
+      clock.ts                    agoraLocal()
+    use-cases/
+      buscar-exames.ts
+      listar-medicos.ts
+      consultar-horarios.ts       horários livres de um dia
+      consultar-disponibilidade.ts total de horários livres por dia do mês
+      criar-agendamento.ts
+      listar-agendamentos.ts
+      cancelar-agendamento.ts
+  infrastructure/
+    csv/exames-csv.repository.ts
+    memoria/medicos.data.ts, medicos-memoria.repository.ts
+    sqlite/database.ts, agendamentos-sqlite.repository.ts
+    clock/system-clock.ts
+  http/
+    app.setup.ts                  prefixo /api, ValidationPipe, filtro de erros, Swagger
+    erros.filter.ts               erro de domínio -> 404 / 422 / 409
+    controllers/                  exames, medicos, agendamentos, health
+    dto/                          DTOs validados e documentados no Swagger
 ```
 
-`agenda` e `agendamentos` ficam no mesmo módulo porque um depende do outro:
-a agenda precisa dos agendamentos ocupados, e criar um agendamento exige que o
-horário esteja na agenda. Separar geraria dependência circular sem ganho.
+Use cases são classes TypeScript puras, uma por caso de uso, com um método
+`executar(...)`. Recebem ports pelo construtor. O `app.module.ts` é o único
+lugar que conhece as implementações concretas e registra os use cases com
+`useFactory`. Assim o núcleo é testado sem Nest e sem banco (ports falsos em
+memória), e trocar SQLite por Postgres seria um novo adapter, sem tocar regra.
 
 ### Como os princípios aparecem
 
-- **SRP**: controller só fala HTTP; service só regra; repository só dados.
-- **DIP**: o relógio é injetado pelo token `CLOCK`. Testes usam um relógio fixo
-  e as regras "sem passado" ficam determinísticas.
-- **OCP**: novas fontes de dados trocam o repository sem tocar o service.
-- **KISS/YAGNI**: sem CQRS, sem camadas de "use case" extras, sem ORM, sem
-  autenticação, sem cancelamento. Interfaces só onde há dois implementadores
-  reais (o relógio).
+- **SRP**: um use case por arquivo; controller só traduz HTTP; adapter só I/O.
+- **OCP/DIP**: regras dependem de ports (interfaces), nunca de SQLite, CSV ou
+  do relógio do sistema.
+- **ISP**: cada port expõe só o que os use cases usam.
+- **KISS/YAGNI**: sem CQRS, sem event bus, sem ORM, sem autenticação. Uma
+  interface só existe quando há fronteira de I/O.
 
 ### Erros
 
-O domínio lança erros próprios; um filtro global traduz para HTTP:
+O domínio e os use cases lançam erros próprios; um filtro global traduz para HTTP:
 
 | Erro | HTTP | Quando |
 | --- | --- | --- |
 | validação de DTO (`ValidationPipe`) | 400 | campo ausente, formato inválido |
-| `NaoEncontradoError` | 404 | exame ou médico inexistente |
-| `RegraNegocioError` | 422 | horário no passado, fora do expediente, fora da grade |
+| `NaoEncontradoError` | 404 | exame, médico ou agendamento inexistente |
+| `RegraNegocioError` | 422 | passado, fora do expediente/grade, cancelar agendamento já iniciado |
 | `ConflitoError` | 409 | horário já ocupado (inclusive por pedido concorrente) |
 
-Corpo: `{ "statusCode": 409, "error": "Conflict", "message": "..." }`
-(mesmo formato padrão do Nest).
+Corpo: `{ "statusCode": 409, "error": "Conflict", "message": "..." }`.
 
 ### Concorrência
 
@@ -87,29 +112,42 @@ A inserção roda dentro de `db.transaction(...).immediate()`:
 
 O better-sqlite3 é síncrono, então dentro do processo não há `await` entre a
 checagem e a inserção; entre processos o lock `IMMEDIATE` serializa as escritas.
-Resultado: de N pedidos simultâneos para o mesmo horário, exatamente um vence e
-os demais recebem 409. Há teste e2e para isso.
+De N pedidos simultâneos para o mesmo horário, exatamente um vence. Há teste e2e.
+
+### Operação
+
+- `GET /api/health`: verifica o banco (`SELECT 1`); usado pelo health check do deploy.
+- `GET /api/docs`: documentação OpenAPI (Swagger) gerada dos controllers e DTOs.
+- GitHub Actions (`.github/workflows/ci.yml`): lint, build e testes das duas pontas em cada push e PR.
 
 ## Front-end
 
-Uma página com fluxo em etapas, sem roteador (YAGNI):
+Layout inspirado num painel de agenda: topbar, sidebar e calendário mensal.
+Duas telas trocadas por estado (sem roteador, YAGNI):
+
+- **Agendar exame**: busca de exame na topbar; escolha do médico em chips;
+  navegação de mês (Hoje, <, mês, >). O calendário mostra, por dia, quantos
+  horários livres há e os exames já marcados daquele médico. Dias sem
+  expediente ou passados ficam apagados. Clicar num dia abre um painel lateral
+  com os horários livres, o nome do paciente e o botão **Agendar**.
+- **Agendamentos**: calendário do mês com todos os exames marcados (filtro por
+  médico). Clicar num exame abre o painel com detalhes e **Cancelar**.
 
 ```
 frontend/src/
   main.tsx
-  App.tsx                     orquestra as etapas e guarda as seleções
-  api/
-    client.ts                 fetch + ApiError(status, message)
-    types.ts                  tipos do contrato da API
+  App.tsx                     layout (topbar + sidebar) e tela ativa
+  api/                        client.ts (fetch + ApiError), types.ts
+  hooks/                      useDebounce, useRequisicao
+  utils/                      datas (mês, grade do calendário), cores por modalidade
   components/
-    ExameBusca.tsx            input com debounce + resultados
-    MedicoData.tsx            escolha de médico e data
-    HorariosLista.tsx         horários livres (carregando/vazio/erro)
-    AgendamentoForm.tsx       nome do paciente + confirmar
-    Confirmacao.tsx           resumo do agendamento criado
-  styles.css
+    layout/                   Topbar, Sidebar
+    calendario/               Calendario, DiaCelula, EventoCard, NavegacaoMes
+    agendar/                  AgendarPagina, BuscaExame, SeletorMedico, PainelDia
+    agendamentos/             AgendamentosPagina, PainelAgendamento
+  styles.css                  tokens de cor/espaço e componentes
 ```
 
-Estados tratados em toda chamada: carregando, vazio, erro (com mensagem da
-API) e sucesso. Em 409 o front avisa que o horário acabou de ser ocupado e
-recarrega a lista de horários.
+Estados tratados em toda chamada: carregando, vazio, erro (mensagem da API) e
+sucesso. Em 409 o painel avisa que o horário acabou de ser ocupado e recarrega
+dia e mês. Em telas estreitas o calendário vira lista de dias.

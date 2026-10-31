@@ -33,6 +33,13 @@ clínica). Na listagem, horários de hoje que já passaram não são oferecidos.
 **RN6 — Dados mínimos.** `pacienteNome`, `exameId`, `medicoId`, `inicio`.
 `fim` é derivado.
 
+**RN7 — Cancelamento.** Um agendamento só pode ser cancelado antes do seu
+início (hora local da clínica); depois disso, 422. Cancelar remove o registro e
+o horário volta a ser oferecido.
+
+**RN8 — Disponibilidade do mês.** Para cada dia do mês, `livres` é o número de
+horários que `/horarios` devolveria para aquele dia (mesmas RN2, RN4 e RN5).
+
 ## Premissas
 
 **PR1 — Fuso.** Toda agenda está em `America/Sao_Paulo` (clínica em MG). A
@@ -59,6 +66,13 @@ médicos no mesmo horário (paciente não é identificado de forma única).
 ("ressonancia" encontra "Ressonância").
 
 **PR8 — Horizonte.** Não há limite de quão longe no futuro se pode agendar.
+
+**PR9 — Cancelamento sem histórico.** Cancelar apaga o registro (sem status
+"cancelado"). Não há auditoria exigida e um status extra complicaria todas as
+consultas de sobreposição.
+
+**PR10 — Sem identificação do paciente.** A tela "Agendamentos" lista todos os
+agendamentos do mês; sem autenticação, não há "meus agendamentos".
 
 ## Turnos dos médicos
 

@@ -80,11 +80,67 @@ nome e receber a confirmação.
 
 ---
 
+## SPEC-05 — Clean Architecture no back-end
+
+**Objetivo:** reorganizar o back-end em `domain` / `application` / `infrastructure` / `http`
+sem mudar o comportamento das rotas existentes.
+
+| Card | Descrição | Aceite |
+| --- | --- | --- |
+| BE-09 | Mover tipos, `gerarHorarios`, `tempo` e erros para `domain/` | Nenhum import de Nest ou SQLite em `domain/` |
+| BE-10 | Ports em `application/ports` e use cases em `application/use-cases` (buscar exames, listar médicos, consultar horários, criar agendamento) | Use cases testados com ports falsos, sem Nest |
+| BE-11 | Adapters em `infrastructure/` (CSV, memória, SQLite, relógio) e composição em `app.module.ts` | Todos os testes e2e anteriores passam sem alteração de contrato |
+| BE-12 | Regra de dependência no ESLint (`no-restricted-imports` em `domain/` e `application/`) | Import proibido quebra `npm run lint` |
+
+---
+
+## SPEC-06 — Calendário de disponibilidade
+
+**História:** como paciente, quero ver no calendário do mês quais dias têm
+horários livres para o exame e médico escolhidos.
+
+**Regras:** RN8.
+
+| Card | Descrição | Aceite |
+| --- | --- | --- |
+| BE-13 | Use case `ConsultarDisponibilidade` + `GET /api/medicos/:id/disponibilidade?mes&exameId` | Todos os dias do mês; uma consulta ao banco; dia sem turno/passado = 0; agendamento reduz o total; testes unitários e e2e |
+| FE-06 | Layout: topbar (logo, busca de exame), sidebar (Agendar exame, Agendamentos), tokens de cor | Responsivo; sidebar vira barra superior/inferior no celular |
+| FE-07 | `Calendario` mensal (SEG–DOM) com `NavegacaoMes` (Hoje, <, mês, >) | Grade correta para qualquer mês; dia de hoje destacado; testes de `utils/datas` |
+| FE-08 | Tela Agendar: exame + chips de médico; células com "N livres"; dias sem vaga apagados; exames marcados do médico como `EventoCard` | Estados carregando/erro/vazio; teste |
+| FE-09 | `PainelDia`: horários do dia, nome do paciente, **Agendar** | 409 avisa e recarrega dia e mês; sucesso atualiza calendário; teste |
+
+---
+
+## SPEC-07 — Listar e cancelar agendamentos
+
+**História:** como atendente, quero ver os exames marcados no mês e cancelar
+um que ainda não começou.
+
+**Regras:** RN7, PR9, PR10.
+
+| Card | Descrição | Aceite |
+| --- | --- | --- |
+| BE-14 | Use case `ListarAgendamentos` + `GET /api/agendamentos?mes[&medicoId]` | Ordenado por início; filtro por médico; 400 sem `mes`; testes |
+| BE-15 | Use case `CancelarAgendamento` + `DELETE /api/agendamentos/:id` | 204; 404 inexistente; 422 já iniciado; horário volta a aparecer em `/horarios`; testes |
+| FE-10 | Tela Agendamentos: calendário com `EventoCard` por exame (cor por modalidade), filtro por médico | Estados carregando/erro/vazio; teste |
+| FE-11 | `PainelAgendamento`: detalhes + **Cancelar** com confirmação | 422/404 mostram mensagem; sucesso remove do calendário; teste |
+
+---
+
+## SPEC-08 — Operação
+
+| Card | Descrição | Aceite |
+| --- | --- | --- |
+| BE-16 | Swagger em `/api/docs` com DTOs e respostas de erro documentados | Todas as rotas aparecem com exemplos |
+| BE-17 | `GET /api/health` (checa o banco) | 200 `{status:"ok"}`; teste e2e |
+| DOC-04 | GitHub Actions: lint, build e testes de back e front | Workflow verde no GitHub |
+
+---
+
 ## Fora do escopo (próximos passos)
 
 - Autenticação e cadastro de pacientes.
-- Cancelamento e remarcação.
-- Listagem de agendamentos por paciente/médico.
+- Remarcação.
 - Feriados, bloqueios de agenda e pausas.
 - Postgres com `EXCLUDE USING gist` para escalar horizontalmente.
 - Testes e2e de interface (Playwright).
