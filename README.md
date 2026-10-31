@@ -1,9 +1,18 @@
 # Agendamento de Exames de Imagem
 
-Aplicação full-stack para buscar um exame, ver os horários livres de um médico
-e agendar. Back-end em NestJS, front-end em React + Vite, num monorepo.
+[![CI](https://github.com/mathfrancisco/desafio-tecnico-agendamento-exames/actions/workflows/ci.yml/badge.svg)](https://github.com/mathfrancisco/desafio-tecnico-agendamento-exames/actions/workflows/ci.yml)
+
+Aplicação full-stack para buscar um exame, ver no calendário os dias e
+horários livres de um médico, agendar e cancelar. Back-end em NestJS com
+Clean Architecture, front-end em React + Vite, num monorepo.
 
 O enunciado original está em [docs/desafio.md](docs/desafio.md).
+
+![Calendário com horários livres e painel de agendamento](docs/img/painel-dia.png)
+
+| Agendamentos do mês | Celular |
+| --- | --- |
+| ![Agendamentos](docs/img/agendamentos.png) | ![Celular](docs/img/mobile.png) |
 
 ## Documentação
 
@@ -32,7 +41,9 @@ npm install
 npm run start:dev
 ```
 
-A API sobe em `http://localhost:3000/api`. Variáveis opcionais:
+A API sobe em `http://localhost:3000/api`. Documentação Swagger em
+`http://localhost:3000/api/docs` e health check em `/api/health`.
+Variáveis opcionais:
 
 | Variável | Padrão | Uso |
 | --- | --- | --- |
@@ -55,14 +66,18 @@ Abra `http://localhost:5173`. O Vite encaminha `/api` para
 
 ```bash
 cd backend
-npm test            # unitários (geração de horários, regras, repositório)
-npm run test:e2e    # rotas HTTP, incluindo pedidos concorrentes
+npm test            # unitários: domínio, use cases com ports falsos, adapters (94)
+npm run test:e2e    # rotas HTTP, incluindo 10 pedidos concorrentes (82)
+npm run test:all    # os dois
 ```
 
 ```bash
 cd frontend
-npm test            # componentes e cliente da API
+npm test            # componentes, utilitários e cliente da API (100)
 ```
+
+A CI (GitHub Actions) roda lint, build e todos os testes das duas pontas em
+cada push e pull request.
 
 ## Exemplos `curl`
 
@@ -92,6 +107,18 @@ curl -X POST "http://localhost:3000/api/agendamentos" \
 curl -X POST "http://localhost:3000/api/agendamentos" \
   -H "Content-Type: application/json" \
   -d '{"pacienteNome":"","exameId":0,"medicoId":1,"inicio":"amanha"}'
+
+# Horários livres por dia do mês (alimenta o calendário)
+curl "http://localhost:3000/api/medicos/1/disponibilidade?mes=2026-11&exameId=7"
+
+# Agendamentos do mês (filtro opcional por médico)
+curl "http://localhost:3000/api/agendamentos?mes=2026-11&medicoId=1"
+
+# Cancelar -> 204 (404 se não existe, 422 se já começou)
+curl -i -X DELETE "http://localhost:3000/api/agendamentos/1"
+
+# Health check
+curl "http://localhost:3000/api/health"
 ```
 
 Ajuste as datas para dias futuros: datas no passado retornam lista vazia ou 422.
@@ -100,19 +127,26 @@ Ajuste as datas para dias futuros: datas no passado retornam lista vazia ou 422.
 
 - **Monorepo** `backend/` + `frontend/`: um clone, histórico único, contrato da
   API versionado junto com quem o consome.
-- **NestJS** com um módulo por assunto (exames, médicos, agendamentos);
-  controller só HTTP, service com regras, repository com dados.
-- **Núcleo puro**: `gerarHorarios` não depende de Nest, banco nem relógio, e
-  concentra RN2/RN4. O mesmo cálculo valida o `POST`, então a API aceita
-  exatamente o que oferece.
-- **Relógio injetado** (`CLOCK`): regra "sem passado" testável com hora fixa.
+- **Clean Architecture** no back-end: `domain` (regras puras) ←
+  `application` (um use case por arquivo + ports) ← `infrastructure`
+  (SQLite, CSV, relógio) e `http` (controllers Nest). O `app.module.ts` é a
+  única raiz de composição. A regra de dependência é verificada pelo ESLint:
+  importar Nest ou SQLite no domínio quebra o lint e a CI.
+- **Núcleo puro**: `gerarHorarios` concentra RN2/RN4 e é usado por
+  `/horarios`, `/disponibilidade` e pela validação do `POST`, então a API
+  aceita exatamente o que oferece e as regras não divergem.
+- **Relógio como port** (`Clock`): regra "sem passado" testável com hora fixa.
 - **SQLite (better-sqlite3)**: zero instalação; transação `IMMEDIATE` com
   checagem de sobreposição antes do `INSERT` impede agendamento duplicado sob
   concorrência (há teste com 10 pedidos simultâneos).
 - **Catálogos em memória**: exames lidos do CSV fornecido; médicos declarados
   em código a partir de `dados/medicos.md`.
 - **Vite** no front: build simples e proxy para a API; sem SSR, sem roteador,
-  sem biblioteca de estado (YAGNI).
+  sem biblioteca de estado nem UI kit (YAGNI). Calendário mensal com
+  horários livres por dia, painel lateral para agendar/cancelar, cor por
+  modalidade de exame e layout em lista no celular.
+- **Swagger** em `/api/docs`, **health check** em `/api/health` e **CI** no
+  GitHub Actions.
 
 Detalhes em [docs/02-arquitetura.md](docs/02-arquitetura.md).
 
@@ -130,7 +164,7 @@ Lista completa em [docs/04-regras-negocio.md](docs/04-regras-negocio.md).
 ## O que ficou de fora (próximos passos)
 
 - Autenticação e cadastro de pacientes.
-- Cancelamento, remarcação e listagem de agendamentos.
+- Remarcação.
 - Feriados, bloqueios e pausas na agenda.
 - Postgres com `EXCLUDE USING gist` para rodar várias instâncias da API.
 - Testes de ponta a ponta na interface (Playwright).
