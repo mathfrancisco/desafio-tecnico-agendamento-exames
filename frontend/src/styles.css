@@ -1,0 +1,255 @@
+:root {
+  --cor-texto: #1b2430;
+  --cor-suave: #4b5868;
+  --cor-fundo: #f4f6f8;
+  --cor-painel: #ffffff;
+  --cor-borda: #c5ced8;
+  --cor-destaque: #0b5cad;
+  --cor-destaque-escuro: #084882;
+  --cor-erro: #a32020;
+  --cor-erro-fundo: #fdecec;
+  --cor-ok: #1d6b3a;
+  --cor-ok-fundo: #e8f5ec;
+  --cor-aviso-fundo: #fff4e0;
+  --raio: 6px;
+  color-scheme: light;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--cor-fundo);
+  color: var(--cor-texto);
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  line-height: 1.5;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+:focus-visible {
+  outline: 3px solid var(--cor-destaque);
+  outline-offset: 2px;
+}
+
+.pagina {
+  max-width: 44rem;
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+.pagina h1 {
+  margin-bottom: 0.25rem;
+  font-size: 1.5rem;
+}
+
+.subtitulo {
+  margin-top: 0;
+  color: var(--cor-suave);
+}
+
+.etapa {
+  margin: 1rem 0;
+  padding: 1rem;
+  background: var(--cor-painel);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio);
+}
+
+.etapa h2 {
+  margin: 0 0 0.75rem;
+  font-size: 1.15rem;
+}
+
+label,
+legend {
+  display: block;
+  margin-bottom: 0.25rem;
+  font-weight: 600;
+}
+
+input[type='search'],
+input[type='text'],
+input[type='date'] {
+  width: 100%;
+  min-height: 2.75rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--cor-suave);
+  border-radius: var(--raio);
+  background: #fff;
+  color: inherit;
+}
+
+.estado {
+  margin: 0.75rem 0 0;
+  color: var(--cor-suave);
+}
+
+.estado.erro,
+.erro {
+  color: var(--cor-erro);
+}
+
+.lista-opcoes {
+  list-style: none;
+  margin: 0.75rem 0 0;
+  padding: 0;
+  display: grid;
+  gap: 0.5rem;
+  max-height: 20rem;
+  overflow-y: auto;
+}
+
+.opcao {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  width: 100%;
+  min-height: 2.75rem;
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio);
+  background: #fff;
+  color: inherit;
+  cursor: pointer;
+}
+
+.opcao:hover {
+  border-color: var(--cor-destaque);
+}
+
+.opcao[aria-pressed='true'] {
+  border-color: var(--cor-destaque);
+  background: #e6f0fa;
+  font-weight: 600;
+}
+
+.detalhe {
+  color: var(--cor-suave);
+  white-space: nowrap;
+}
+
+fieldset {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+}
+
+fieldset:disabled {
+  opacity: 0.55;
+}
+
+.opcao-radio {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  margin: 0;
+  padding: 0.5rem 0.75rem;
+  font-weight: 400;
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio);
+  background: #fff;
+  cursor: pointer;
+}
+
+.opcao-radio input {
+  width: 1.25rem;
+  height: 1.25rem;
+  margin-top: 0.2rem;
+}
+
+.opcao-radio:has(input:checked) {
+  border-color: var(--cor-destaque);
+  background: #e6f0fa;
+}
+
+.opcao-radio:has(input:focus-visible) {
+  outline: 3px solid var(--cor-destaque);
+  outline-offset: 2px;
+}
+
+.campo {
+  margin-top: 1rem;
+}
+
+.grade-horarios {
+  list-style: none;
+  margin: 0.75rem 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(8.5rem, 1fr));
+  gap: 0.5rem;
+}
+
+.opcao.horario {
+  justify-content: center;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.resumo {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 0.25rem 1rem;
+  margin: 0 0 1rem;
+}
+
+.resumo dt {
+  color: var(--cor-suave);
+}
+
+.resumo dd {
+  margin: 0;
+  font-weight: 600;
+}
+
+.erro {
+  margin: 0.5rem 0 0;
+}
+
+input[aria-invalid='true'] {
+  border-color: var(--cor-erro);
+}
+
+.primario {
+  margin-top: 1rem;
+  min-height: 2.75rem;
+  padding: 0.5rem 1.25rem;
+  border: 0;
+  border-radius: var(--raio);
+  background: var(--cor-destaque);
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.primario:hover:not(:disabled) {
+  background: var(--cor-destaque-escuro);
+}
+
+.primario:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.confirmacao {
+  border-color: var(--cor-ok);
+  background: var(--cor-ok-fundo);
+}
+
+.aviso {
+  margin: 0.75rem 0 0;
+  padding: 0.5rem 0.75rem;
+  border-left: 4px solid #b26a00;
+  border-radius: var(--raio);
+  background: var(--cor-aviso-fundo);
+}
