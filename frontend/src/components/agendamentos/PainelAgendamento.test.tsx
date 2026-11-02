@@ -1,5 +1,5 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { Agendamento, Exame, Medico } from '../../api/types'
 import PainelAgendamento from './PainelAgendamento'
 
@@ -19,12 +19,12 @@ function json(corpo: unknown, status = 200) {
   return Promise.resolve(new Response(JSON.stringify(corpo), { status }))
 }
 
-function renderizar() {
+function renderizar(alvo: Agendamento = agendamento) {
   const onFechar = vi.fn()
   const onCancelado = vi.fn()
   render(
     <PainelAgendamento
-      agendamento={agendamento}
+      agendamento={alvo}
       exame={exame}
       medico={medico}
       onFechar={onFechar}
@@ -39,6 +39,12 @@ function pedirCancelamento() {
 }
 
 describe('PainelAgendamento', () => {
+  beforeEach(() => {
+    vi.useFakeTimers({ toFake: ['Date'] })
+    vi.setSystemTime(new Date('2026-11-02T13:00:00Z')) // segunda, 10:00 na clínica
+  })
+  afterEach(() => vi.useRealTimers())
+
   it('mostra exame, médico, paciente, data e horário de início e fim', () => {
     renderizar()
 
@@ -46,7 +52,7 @@ describe('PainelAgendamento', () => {
     expect(screen.getByText('Maria Silva')).toBeInTheDocument()
     expect(screen.getByText('Dra. Helena Marques (CRM-MG 11111)')).toBeInTheDocument()
     expect(screen.getByText('terça-feira, 3 de novembro de 2026')).toBeInTheDocument()
-    expect(screen.getByText('08:00 – 08:40')).toBeInTheDocument()
+    expect(screen.getByText('08:00–08:40')).toBeInTheDocument()
     expect(screen.getByText('40 min')).toBeInTheDocument()
   })
 
@@ -142,6 +148,16 @@ describe('PainelAgendamento', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Fechar painel' }))
 
     expect(onFechar).toHaveBeenCalledTimes(2)
+  })
+
+  it.each([
+    ['já realizado', '2026-10-30T08:00', '2026-10-30T08:40'],
+    ['começa exatamente agora', '2026-11-02T10:00', '2026-11-02T10:40'],
+  ])('exame %s não oferece cancelamento', (_caso, inicio, fim) => {
+    renderizar({ ...agendamento, inicio, fim })
+
+    expect(screen.queryByRole('button', { name: 'Cancelar agendamento' })).toBeNull()
+    expect(screen.getByText(/já começou ou foi realizado/)).toBeInTheDocument()
   })
 
   it('usa texto neutro se exame ou médico não estiverem no catálogo', () => {

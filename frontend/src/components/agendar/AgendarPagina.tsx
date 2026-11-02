@@ -24,6 +24,8 @@ export default function AgendarPagina({ exame, medicos, exames }: Props) {
   const [nomePaciente, setNomePaciente] = useState('')
   const medico = medicos.find((m) => m.id === medicoId) ?? null
   const mesAtual = mesDe(hoje)
+  // Se o mês virar com a tela aberta, o mês escolhido pode ter ficado no passado.
+  const mesVisivel = mes < mesAtual ? mesAtual : mes
 
   return (
     <>
@@ -57,7 +59,7 @@ export default function AgendarPagina({ exame, medicos, exames }: Props) {
             rotulo="Médico"
             mostrarDias
           />
-          <NavegacaoMes mes={mes} onMes={setMes} mesMinimo={mesAtual} />
+          <NavegacaoMes mes={mesVisivel} onMes={setMes} mesMinimo={mesAtual} />
         </div>
       </section>
 
@@ -67,7 +69,7 @@ export default function AgendarPagina({ exame, medicos, exames }: Props) {
           exame={exame}
           medico={medico}
           exames={exames}
-          mes={mes}
+          mes={mesVisivel}
           hoje={hoje}
           nomePaciente={nomePaciente}
           onNomePaciente={setNomePaciente}
@@ -80,7 +82,7 @@ export default function AgendarPagina({ exame, medicos, exames }: Props) {
               : 'Escolha um exame e um médico para ver os horários livres de cada dia.'}
           </p>
           <Calendario
-            mes={mes}
+            mes={mesVisivel}
             renderDia={(data) => <DiaCelula data={data} hoje={data === hoje} apagado />}
           />
         </>

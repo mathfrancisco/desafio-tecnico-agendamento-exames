@@ -38,18 +38,26 @@ function doisDigitos(n: number): string {
 }
 
 // PR1: a agenda é toda no fuso da clínica, mesmo que o navegador esteja em outro.
-const DATA_NA_CLINICA = new Intl.DateTimeFormat('en-CA', {
+const AGORA_NA_CLINICA = new Intl.DateTimeFormat('en-CA', {
   timeZone: 'America/Sao_Paulo',
   year: 'numeric',
   month: '2-digit',
   day: '2-digit',
+  hour: '2-digit',
+  minute: '2-digit',
+  hourCycle: 'h23',
 })
 
-/** Data de hoje no fuso da clínica (America/Sao_Paulo), como `YYYY-MM-DD`. */
-export function hojeNaClinica(): string {
+/** Data e hora atuais no fuso da clínica (America/Sao_Paulo), como `YYYY-MM-DDTHH:mm`. */
+export function agoraNaClinica(): string {
   const p: Record<string, string> = {}
-  for (const parte of DATA_NA_CLINICA.formatToParts(new Date())) p[parte.type] = parte.value
-  return `${p.year}-${p.month}-${p.day}`
+  for (const parte of AGORA_NA_CLINICA.formatToParts(new Date())) p[parte.type] = parte.value
+  return `${p.year}-${p.month}-${p.day}T${p.hour}:${p.minute}`
+}
+
+/** Data de hoje no fuso da clínica, como `YYYY-MM-DD`. */
+export function hojeNaClinica(): string {
+  return dataDe(agoraNaClinica())
 }
 
 /** `2026-11-03` (ou `2026-11-03T08:00`) -> `2026-11`. */

@@ -6,6 +6,7 @@ import {
   formatarDataLonga,
   formatarDiaMes,
   gradeDoMes,
+  agoraNaClinica,
   hojeNaClinica,
   horaDe,
   indiceSemana,
@@ -123,5 +124,13 @@ describe('hojeNaClinica', () => {
     expect(hojeNaClinica()).toBe('2026-11-05')
     vi.setSystemTime(new Date('2026-11-06T03:00:00Z')) // meia-noite na clínica
     expect(hojeNaClinica()).toBe('2026-11-06')
+  })
+
+  it('agoraNaClinica traz a hora local, com meia-noite como 00', () => {
+    vi.useFakeTimers({ toFake: ['Date'] })
+    vi.setSystemTime(new Date('2026-11-06T02:30:00Z'))
+    expect(agoraNaClinica()).toBe('2026-11-05T23:30')
+    vi.setSystemTime(new Date('2026-11-06T03:05:00Z'))
+    expect(agoraNaClinica()).toBe('2026-11-06T00:05')
   })
 })

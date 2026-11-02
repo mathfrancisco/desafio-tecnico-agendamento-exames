@@ -124,6 +124,13 @@ describe('PainelDia', () => {
     })
     expect(screen.getByText('O nome deve ter no máximo 100 caracteres.')).toBeInTheDocument()
 
+    fireEvent.change(screen.getByLabelText('Nome do paciente'), {
+      target: { value: 'Maria	Silva' },
+    })
+    expect(
+      screen.getByText('O nome não pode ter tabulação nem caracteres de controle.'),
+    ).toBeInTheDocument()
+
     agendar()
     const posts = fetchMock.mock.calls.filter(([, init]) => init?.method === 'POST')
     expect(posts).toHaveLength(0)
@@ -136,7 +143,7 @@ describe('PainelDia', () => {
 
     agendar()
 
-    expect(await screen.findByText('Agendamento confirmado')).toBeInTheDocument()
+    expect(await screen.findByText('Agendamento confirmado')).toHaveFocus()
     expect(screen.getByText('Maria Silva')).toBeInTheDocument()
     expect(screen.getByText('08:00–08:40')).toBeInTheDocument()
     expect(onAtualizado).toHaveBeenCalledTimes(1)
@@ -195,6 +202,8 @@ describe('PainelDia', () => {
     )
     expect(screen.queryByRole('button', { name: '08:00–08:40' })).toBeNull()
     expect(screen.getByLabelText('Nome do paciente')).toHaveValue('Maria Silva')
+    // o aviso já explica: não repete "Escolha um horário." embaixo da lista
+    expect(screen.queryByText('Escolha um horário.')).toBeNull()
     expect(onAtualizado).toHaveBeenCalledTimes(1)
   })
 
@@ -233,14 +242,23 @@ describe('PainelDia', () => {
     expect(onAtualizado).not.toHaveBeenCalled()
   })
 
-  it('falha de rede no POST mostra mensagem genérica', async () => {
-    simularApi({ post: () => Promise.reject(new TypeError('Failed to fetch')) })
-    renderizar()
+  it('falha de rede no POST: avisa que pode ter sido criado e recarrega a agenda', async () => {
+    const fetchMock = simularApi({
+      horarios: [dois, apenasUm],
+      post: () => Promise.reject(new TypeError('Failed to fetch')),
+    })
+    const { onAtualizado } = renderizar()
     await escolherHorarioEPreencher()
 
     agendar()
 
-    expect(await screen.findByRole('alert')).toHaveTextContent(/conectar ao servidor/)
+    expect(await screen.findByRole('alert')).toHaveTextContent(/pode ter sido criado/)
+    await waitFor(() => expect(consultasDeHorarios(fetchMock)).toBe(2))
+    expect(await screen.findByRole('button', { name: '08:40–09:20' })).toHaveAttribute(
+      'aria-pressed',
+      'false',
+    )
+    expect(onAtualizado).toHaveBeenCalledTimes(1)
   })
 
   it('dia sem horários livres mostra estado vazio e não oferece o formulário', async () => {

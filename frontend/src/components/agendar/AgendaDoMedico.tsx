@@ -109,7 +109,7 @@ export default function AgendaDoMedico({
                 <span className="pilula pilula--livres">
                   <span className="pilula__longo">{rotuloLivres(quantidade)}</span>
                   <span className="pilula__curto" aria-hidden="true">
-                    {quantidade} livres
+                    {quantidade} {quantidade === 1 ? 'livre' : 'livres'}
                   </span>
                 </span>
               )}

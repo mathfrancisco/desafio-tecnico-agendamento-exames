@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { Agendamento, Exame, Medico } from '../../api/types'
 import { diasDoMes } from '../../utils/datas'
@@ -159,6 +159,20 @@ describe('AgendarPagina', () => {
       'aria-current',
       'date',
     )
+  })
+
+  it('se o mês virar com a tela aberta, passa para o mês novo', () => {
+    vi.useRealTimers() // troca o falso só de Date por um que também avança o setInterval
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date('2026-12-01T02:59:30Z')) // 30/11 23:59:30 na clínica
+    simularApi()
+    renderizar(null)
+    expect(screen.getByText('Novembro de 2026')).toBeInTheDocument()
+
+    act(() => vi.advanceTimersByTime(60_000))
+
+    expect(screen.getByText('Dezembro de 2026')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Mês anterior' })).toBeDisabled()
   })
 
   it('navega entre meses refazendo a consulta e não deixa voltar antes de hoje', async () => {

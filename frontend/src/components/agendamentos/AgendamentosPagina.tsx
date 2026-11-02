@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { listarAgendamentos } from '../../api/client'
 import type { Exame, Medico } from '../../api/types'
 import { useHoje } from '../../hooks/useHoje'
@@ -30,6 +30,17 @@ export default function AgendamentosPagina({ medicos, exames }: Props) {
     `agendamentos|${mes}|${medicoId ?? 'todos'}`,
   )
 
+  const titulo = useRef<HTMLHeadingElement>(null)
+
+  // marcações feitas em outra aba ou por outra pessoa aparecem ao voltar para a tela
+  useEffect(() => {
+    function aoVoltar() {
+      if (document.visibilityState === 'visible') recarregar()
+    }
+    document.addEventListener('visibilitychange', aoVoltar)
+    return () => document.removeEventListener('visibilitychange', aoVoltar)
+  }, [recarregar])
+
   const porDia = agruparPorDia(agendamentos.status === 'ok' ? agendamentos.dados : [])
   const nomeDoExame = nomeDoExamePor(exames)
   const medicoFiltrado = medicos.find((m) => m.id === medicoId)
@@ -40,6 +51,8 @@ export default function AgendamentosPagina({ medicos, exames }: Props) {
       : null
 
   function cancelado() {
+    // o cartão cancelado some da grade: o foco vai para o título, não para o <body>
+    titulo.current?.focus()
     setSelecionadoId(null)
     recarregar()
   }
@@ -57,7 +70,7 @@ export default function AgendamentosPagina({ medicos, exames }: Props) {
   return (
     <>
       <section className="cabecalho" aria-labelledby="titulo-agendamentos">
-        <h1 id="titulo-agendamentos" className="cabecalho__titulo">
+        <h1 id="titulo-agendamentos" ref={titulo} tabIndex={-1} className="cabecalho__titulo">
           <span className="marcador" aria-hidden="true" />
           Agendamentos
         </h1>
@@ -92,7 +105,11 @@ export default function AgendamentosPagina({ medicos, exames }: Props) {
         mes={mes}
         ocupado={agendamentos.status === 'carregando'}
         renderDia={(data) => (
-          <DiaCelula data={data} hoje={data === hoje}>
+          <DiaCelula
+            data={data}
+            hoje={data === hoje}
+            ocultarNoCelular={data !== hoje && !porDia.has(data)}
+          >
             <EventosDoDia
               agendamentos={porDia.get(data) ?? []}
               nomeDoExame={nomeDoExame}

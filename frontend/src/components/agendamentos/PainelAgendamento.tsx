@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { ApiError, cancelarAgendamento, mensagemDeErro } from '../../api/client'
 import type { Agendamento, Exame, Medico } from '../../api/types'
-import { dataDe, formatarDataLonga, horaDe } from '../../utils/datas'
+import { agoraNaClinica, dataDe, formatarDataLonga, horaDe } from '../../utils/datas'
 import { modalidadeDoExame } from '../../utils/modalidade'
 import { IconeCalendario, IconeExame, IconeMedico, IconeRelogio, IconeUsuario } from '../icones'
 import LinhaInfo from '../layout/LinhaInfo'
@@ -28,6 +28,8 @@ export default function PainelAgendamento({
   const [confirmando, setConfirmando] = useState(false)
   const [cancelando, setCancelando] = useState(false)
   const [mensagem, setMensagem] = useState<string | null>(null)
+  // RN7: só cancela antes do início. Se começar com o painel aberto, a API responde 422.
+  const [jaComecou] = useState(() => agendamento.inicio <= agoraNaClinica())
   const nomeDoExame = exame?.nome ?? `Exame ${agendamento.exameId}`
 
   async function cancelar() {
@@ -62,7 +64,7 @@ export default function PainelAgendamento({
           {formatarDataLonga(dataDe(agendamento.inicio))}
         </LinhaInfo>
         <LinhaInfo icone={<IconeRelogio tamanho={14} />} rotulo="Horário">
-          {horaDe(agendamento.inicio)} – {horaDe(agendamento.fim)}
+          {horaDe(agendamento.inicio)}–{horaDe(agendamento.fim)}
         </LinhaInfo>
         {exame && (
           <LinhaInfo icone={<IconeExame tamanho={14} />} rotulo="Duração do exame">
@@ -77,7 +79,9 @@ export default function PainelAgendamento({
         </p>
       )}
 
-      {confirmando ? (
+      {jaComecou ? (
+        <p className="estado">Este exame já começou ou foi realizado e não pode ser cancelado.</p>
+      ) : confirmando ? (
         <div className="confirmar-cancelamento">
           <p>
             Cancelar o agendamento de <strong>{agendamento.pacienteNome}</strong>? O horário volta

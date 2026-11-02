@@ -1,4 +1,4 @@
-import { useId, useState, type FormEvent } from 'react'
+import { useEffect, useId, useRef, useState, type FormEvent } from 'react'
 import { ApiError, buscarHorarios, criarAgendamento, mensagemDeErro } from '../../api/client'
 import type { Agendamento, Exame, Medico } from '../../api/types'
 import { useRequisicao } from '../../hooks/useRequisicao'
@@ -13,12 +13,15 @@ const NOME_MIN = 3
 const NOME_MAX = 100
 const AVISO_CONFLITO =
   'Este horário acabou de ser ocupado por outra pessoa. Escolha outro horário da lista atualizada.'
+const AVISO_SEM_RESPOSTA =
+  'A conexão caiu antes da confirmação e o agendamento pode ter sido criado. Confira a agenda atualizada antes de tentar de novo.'
 
 function validarNome(nome: string): string | null {
   const tamanho = nome.trim().length
   if (tamanho === 0) return 'Informe o nome do paciente.'
   if (tamanho < NOME_MIN) return `O nome deve ter pelo menos ${NOME_MIN} caracteres.`
   if (tamanho > NOME_MAX) return `O nome deve ter no máximo ${NOME_MAX} caracteres.`
+  if (/\p{Cc}/u.test(nome.trim())) return 'O nome não pode ter tabulação nem caracteres de controle.'
   return null
 }
 
@@ -55,6 +58,12 @@ export default function PainelDia({
   const [enviando, setEnviando] = useState(false)
   const [mensagem, setMensagem] = useState<string | null>(null)
   const [criado, setCriado] = useState<Agendamento | null>(null)
+  const tituloConfirmacao = useRef<HTMLHeadingElement>(null)
+
+  // o formulário some ao confirmar: leva o foco para a confirmação em vez de perdê-lo
+  useEffect(() => {
+    if (criado) tituloConfirmacao.current?.focus()
+  }, [criado])
 
   const erroNome = tentou ? validarNome(nome) : null
   const erroHorario = tentou && inicio === null ? 'Escolha um horário.' : null
@@ -79,10 +88,18 @@ export default function PainelDia({
       onAtualizado()
     } catch (erro) {
       // 409: outra pessoa pegou o horário. 422: o horário passou com a tela aberta.
-      // Nos dois casos a lista está velha: recarrega e pede outra escolha.
-      if (erro instanceof ApiError && (erro.status === 409 || erro.status === 422)) {
-        setMensagem(erro.status === 409 ? AVISO_CONFLITO : erro.message)
+      // 0: sem resposta, o POST pode ter sido gravado. Nos três casos a lista pode
+      // estar velha: recarrega e pede outra escolha.
+      if (erro instanceof ApiError && [0, 409, 422].includes(erro.status)) {
+        setMensagem(
+          erro.status === 409
+            ? AVISO_CONFLITO
+            : erro.status === 0
+              ? AVISO_SEM_RESPOSTA
+              : erro.message,
+        )
         setInicio(null)
+        setTentou(false)
         recarregarHorarios()
         onAtualizado()
       } else {
@@ -118,7 +135,9 @@ export default function PainelDia({
 
       {criado ? (
         <div className="confirmacao" role="status">
-          <h3>Agendamento confirmado</h3>
+          <h3 ref={tituloConfirmacao} tabIndex={-1}>
+            Agendamento confirmado
+          </h3>
           <dl className="info-lista">
             <LinhaInfo icone={<IconeUsuario tamanho={14} />} rotulo="Paciente">
               {criado.pacienteNome}

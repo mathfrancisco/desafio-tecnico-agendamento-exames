@@ -197,6 +197,29 @@ describe('AgendamentosPagina', () => {
     await waitFor(() => expect(screen.queryByText('Maria Silva')).toBeNull())
     expect(fetchMock).toHaveBeenCalledWith('/api/agendamentos/1', { method: 'DELETE' })
     expect(screen.getByText('João Pereira')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { level: 1, name: 'Agendamentos' })).toHaveFocus()
+  })
+
+  it('recarrega o mês quando a aba volta a ficar visível', async () => {
+    const fetchMock = simularApi()
+    renderizar()
+    await screen.findByText('Maria Silva')
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+
+    document.dispatchEvent(new Event('visibilitychange'))
+
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2))
+  })
+
+  it('marca para sumir no celular só os dias sem agendamento que não são hoje', async () => {
+    simularApi()
+    renderizar()
+    await screen.findByText('Maria Silva')
+
+    const dia = (texto: string) => screen.getByText(texto).closest('li')!
+    expect(dia('terça-feira, 3 de novembro de 2026')).not.toHaveClass('dia--so-grade')
+    expect(dia('segunda-feira, 2 de novembro de 2026')).not.toHaveClass('dia--so-grade')
+    expect(dia('quarta-feira, 4 de novembro de 2026')).toHaveClass('dia--so-grade')
   })
 
   it('trocar o filtro fecha o painel aberto', async () => {

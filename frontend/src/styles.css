@@ -697,7 +697,7 @@ button.eventos__mais {
 
 .pilula--neutra {
   background: var(--fundo);
-  color: var(--suave);
+  color: var(--texto);
 }
 
 .pilula--carregando {
@@ -740,7 +740,9 @@ button.eventos__mais {
   box-shadow: var(--sombra-flutuante);
 }
 
-.painel:focus {
+.painel:focus,
+.cabecalho__titulo:focus,
+.confirmacao h3:focus {
   outline: none;
 }
 
@@ -981,7 +983,8 @@ button.eventos__mais {
   }
 
   .calendario__semana,
-  .dia--vazio {
+  .dia--vazio,
+  .dia--so-grade {
     display: none;
   }
 
