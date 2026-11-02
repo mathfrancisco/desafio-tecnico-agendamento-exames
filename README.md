@@ -73,13 +73,13 @@ Abra `http://localhost:5173`. O Vite encaminha `/api` para
 ```bash
 cd backend
 npm test            # unitários: domínio, use cases com ports falsos, adapters (100)
-npm run test:e2e    # rotas HTTP, incluindo 10 pedidos concorrentes (82)
+npm run test:e2e    # rotas HTTP, incluindo 10 pedidos concorrentes (89)
 npm run test:all    # os dois
 ```
 
 ```bash
 cd frontend
-npm test            # componentes, utilitários e cliente da API (102)
+npm test            # componentes, utilitários e cliente da API (108)
 ```
 
 A CI (GitHub Actions) roda lint, build e todos os testes das duas pontas em
@@ -95,19 +95,19 @@ curl "http://localhost:3000/api/exames?nome=ressonancia"
 curl "http://localhost:3000/api/medicos"
 
 # Horários livres da Dra. Helena (id 1) para Ultrassonografia Abdominal (id 7, 40 min)
-curl "http://localhost:3000/api/medicos/1/horarios?data=2026-11-03&exameId=7"
+curl "http://localhost:3000/api/medicos/1/horarios?data=2027-03-02&exameId=7"
 
 # Agendar
 curl -X POST "http://localhost:3000/api/agendamentos" \
   -H "Content-Type: application/json" \
-  -d '{"pacienteNome":"Maria Silva","exameId":7,"medicoId":1,"inicio":"2026-11-03T08:00"}'
+  -d '{"pacienteNome":"Maria Silva","exameId":7,"medicoId":1,"inicio":"2027-03-02T08:00"}'
 
 # Repetir o mesmo POST -> 409 (horário ocupado)
 
 # Fora do expediente (domingo) -> 422
 curl -X POST "http://localhost:3000/api/agendamentos" \
   -H "Content-Type: application/json" \
-  -d '{"pacienteNome":"Maria Silva","exameId":7,"medicoId":1,"inicio":"2026-11-01T08:00"}'
+  -d '{"pacienteNome":"Maria Silva","exameId":7,"medicoId":1,"inicio":"2027-03-07T08:00"}'
 
 # Dados inválidos -> 400
 curl -X POST "http://localhost:3000/api/agendamentos" \
@@ -115,10 +115,10 @@ curl -X POST "http://localhost:3000/api/agendamentos" \
   -d '{"pacienteNome":"","exameId":0,"medicoId":1,"inicio":"amanha"}'
 
 # Horários livres por dia do mês (alimenta o calendário)
-curl "http://localhost:3000/api/medicos/1/disponibilidade?mes=2026-11&exameId=7"
+curl "http://localhost:3000/api/medicos/1/disponibilidade?mes=2027-03&exameId=7"
 
 # Agendamentos do mês (filtro opcional por médico)
-curl "http://localhost:3000/api/agendamentos?mes=2026-11&medicoId=1"
+curl "http://localhost:3000/api/agendamentos?mes=2027-03&medicoId=1"
 
 # Cancelar -> 204 (404 se não existe, 422 se já começou)
 curl -i -X DELETE "http://localhost:3000/api/agendamentos/1"
@@ -165,7 +165,8 @@ Detalhes em [docs/02-arquitetura.md](docs/02-arquitetura.md).
 - O `inicio` de um agendamento precisa estar na grade gerada a partir do
   início do turno.
 - Data passada ou dia sem turno na consulta de horários retornam lista vazia.
-- Nome do paciente obrigatório, 3 a 100 caracteres.
+- Nome do paciente obrigatório, 3 a 100 caracteres, sem quebra de linha nem
+  caracteres de controle.
 
 Lista completa em [docs/04-regras-negocio.md](docs/04-regras-negocio.md).
 

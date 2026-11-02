@@ -28,7 +28,7 @@ Turno
 ## Datas e horas
 
 - Todas as datas/horas de agenda estão no **horário local da clínica**,
-  `America/Sao_Paulo`, sem offset no texto: `2026-11-03T09:20`.
+  `America/Sao_Paulo`, sem offset no texto: `2027-03-02T09:20`.
 - Formato fixo e com zeros à esquerda: comparação de texto equivale a
   comparação cronológica. Isso deixa a checagem de sobreposição em SQL simples.
 - Nenhum turno cruza a meia-noite (o mais tarde termina 22:00), então início e
@@ -90,10 +90,20 @@ O índice `(medico_id, inicio)` atende essa busca.
 
 Prefixo `/api`. JSON em camelCase.
 
+Erros vêm como `{ "statusCode": 400, "error": "Bad Request", "message": "..." }`.
+Em 400 de validação, `message` pode ser uma lista com um texto por campo.
+Valem para todas as rotas:
+
+- Id de rota que não é inteiro (`/agendamentos/abc`, `/medicos/1.5/horarios`):
+  400 com `id deve ser um número inteiro` (ou `medicoId ...`).
+- Campos do corpo e parâmetros de query desconhecidos são descartados, sem 400.
+  Um parâmetro com nome errado é ignorado: `?medicold=1` lista todos os médicos.
+
 ### `GET /api/exames?nome=<texto>`
 
 Busca por trecho do nome, sem diferenciar maiúsculas nem acentos.
 `nome` ausente ou vazio retorna o catálogo inteiro. Ordenado por nome.
+`nome` repetido (`?nome=a&nome=b`): 400.
 
 ```json
 [{ "id": 20, "nome": "Ressonância Magnética de Crânio", "duracaoMinutos": 40 }]
@@ -114,7 +124,7 @@ Horários livres do médico naquela data para aquele exame.
 
 ```json
 {
-  "medicoId": 1, "exameId": 7, "data": "2026-11-03",
+  "medicoId": 1, "exameId": 7, "data": "2027-03-02",
   "horarios": [{ "inicio": "08:00", "fim": "08:40" }, ...]
 }
 ```
@@ -125,7 +135,7 @@ Horários livres do médico naquela data para aquele exame.
 ### `POST /api/agendamentos`
 
 ```json
-{ "pacienteNome": "Maria Silva", "exameId": 7, "medicoId": 1, "inicio": "2026-11-03T08:00" }
+{ "pacienteNome": "Maria Silva", "exameId": 7, "medicoId": 1, "inicio": "2027-03-02T08:00" }
 ```
 
 Resposta 201:
@@ -133,12 +143,13 @@ Resposta 201:
 ```json
 {
   "id": 1, "pacienteNome": "Maria Silva", "exameId": 7, "medicoId": 1,
-  "inicio": "2026-11-03T08:00", "fim": "2026-11-03T08:40",
+  "inicio": "2027-03-02T08:00", "fim": "2027-03-02T08:40",
   "criadoEm": "2026-10-31T15:00:00.000Z"
 }
 ```
 
-Erros: 400 (validação), 404 (exame/médico), 422 (passado/fora da grade),
+Erros: 400 (validação; inclui nome com quebra de linha, tab ou outro
+caractere de controle), 404 (exame/médico), 422 (passado/fora da grade),
 409 (horário ocupado).
 
 ### `GET /api/medicos/:medicoId/disponibilidade?mes=YYYY-MM&exameId=<id>`
@@ -148,10 +159,11 @@ Total de horários livres por dia do mês, para o calendário. Mesma regra de
 
 ```json
 {
-  "medicoId": 1, "exameId": 7, "mes": "2026-11",
+  "medicoId": 1, "exameId": 7, "mes": "2027-03",
   "dias": [
-    { "data": "2026-11-01", "livres": 0 },
-    { "data": "2026-11-02", "livres": 12 }
+    { "data": "2027-03-01", "livres": 12 },
+    ...
+    { "data": "2027-03-06", "livres": 0 }
   ]
 }
 ```
@@ -166,7 +178,7 @@ Agendamentos do mês, ordenados por `inicio`. `medicoId` opcional filtra por mé
 ```json
 [{
   "id": 1, "pacienteNome": "Maria Silva", "exameId": 7, "medicoId": 1,
-  "inicio": "2026-11-03T08:00", "fim": "2026-11-03T08:40",
+  "inicio": "2027-03-02T08:00", "fim": "2027-03-02T08:40",
   "criadoEm": "2026-10-31T15:00:00.000Z"
 }]
 ```
@@ -176,11 +188,12 @@ Agendamentos do mês, ordenados por `inicio`. `medicoId` opcional filtra por mé
 ### `DELETE /api/agendamentos/:id`
 
 Cancela (remove) o agendamento e libera o horário. Resposta 204 sem corpo.
-Inexistente: 404. Já iniciado ou passado: 422.
+`id` não inteiro: 400. Inexistente: 404. Já iniciado ou passado: 422.
 
 ### `GET /api/health`
 
-`{ "status": "ok" }` (200) quando o banco responde.
+`{ "status": "ok" }` (200) quando o banco responde; `{ "status": "erro" }` (503)
+quando não responde.
 
 ### `GET /api/docs`
 

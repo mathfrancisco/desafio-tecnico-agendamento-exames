@@ -70,6 +70,8 @@ backend/src/
   http/
     app.setup.ts                  prefixo /api, ValidationPipe, filtro de erros, Swagger
     erros.filter.ts               erro de domínio -> 404 / 422 / 409
+    parse-id.pipe.ts              id de rota inteiro, com 400 em português
+    servir-frontend.ts            em produção, serve o build do front (SPA)
     controllers/                  exames, medicos, agendamentos, health
     dto/                          DTOs validados e documentados no Swagger
 ```

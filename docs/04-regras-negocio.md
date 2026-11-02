@@ -53,7 +53,7 @@ início do turno). Assim RN2 e RN4 são verificadas pela mesma função, e a API
 aceita exatamente o que o front mostra. Fora disso: 422.
 
 **PR3 — Nome do paciente.** Obrigatório, sem espaços nas pontas, 3 a 100
-caracteres. Não há cadastro de paciente: um agendamento guarda o nome.
+caracteres, sem quebra de linha, tab ou outro caractere de controle. Não há cadastro de paciente: um agendamento guarda o nome.
 
 **PR4 — Mesmo paciente.** Não há regra que impeça o mesmo nome em dois
 médicos no mesmo horário (paciente não é identificado de forma única).

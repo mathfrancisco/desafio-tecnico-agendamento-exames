@@ -11,7 +11,8 @@ Um único container (`Dockerfile` na raiz, multi-stage):
 
 Em produção a API serve o front no mesmo domínio (`FRONTEND_DIST`): rotas
 `/api/*` vão para o Nest; o resto devolve arquivos estáticos ou `index.html`
-(SPA). Um serviço, uma URL, sem CORS.
+(SPA). Arquivo com extensão que não existe (ex.: `/assets/antigo.js`) dá 404, não
+o HTML. Um serviço, uma URL, sem CORS.
 
 | Variável | Valor na imagem |
 | --- | --- |

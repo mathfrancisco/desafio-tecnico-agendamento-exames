@@ -137,6 +137,19 @@ um que ainda não começou.
 
 ---
 
+## SPEC-09 — Auditoria final
+
+Revisão de código e da demo publicada. Cada card fecha um achado.
+
+| Card | Descrição | Aceite |
+| --- | --- | --- |
+| BE-18 | Bordas da API | Id de rota não inteiro dá 400 em português; nome com quebra de linha ou caractere de controle dá 400 (PR3); sem cabeçalho `x-powered-by`; Swagger com título próprio; arquivo inexistente do front dá 404, não o `index.html`; testes e2e |
+| FE-12 | Bordas da tela Agendar | Mês virando com a tela aberta mostra o mês novo; falha de rede ao agendar avisa que pode ter sido criado e recarrega a agenda; o aviso de 409 não repete "Escolha um horário."; foco vai para a confirmação; pílula "1 livre" no singular; testes |
+| FE-13 | Bordas da tela Agendamentos | Exame que já começou não mostra "Cancelar"; foco vai para o título após cancelar; recarrega ao voltar para a aba; no celular, só dias com agendamento (e hoje); horário no formato `08:00–08:40`; testes |
+| DOC-05 | Contrato completo e exemplos válidos | docs/03 lista 400 de id, 400 de `/exames` e 503 do health; campos desconhecidos documentados; datas de exemplo no futuro |
+
+---
+
 ## Fora do escopo (próximos passos)
 
 - Autenticação e cadastro de pacientes.
