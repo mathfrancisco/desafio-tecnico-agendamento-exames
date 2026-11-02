@@ -15,6 +15,7 @@ describe('GET /api/health', () => {
     const res = await http(app).get('/api/health');
     expect(res.status).toBe(200);
     expect(res.body).toEqual({ status: 'ok' });
+    expect(res.headers['x-powered-by']).toBeUndefined();
   });
 
   it('503 quando o banco não responde', async () => {

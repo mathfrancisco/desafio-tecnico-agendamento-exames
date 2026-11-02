@@ -4,7 +4,7 @@ import { IsInt, IsPositive } from 'class-validator';
 import { IsMes } from './validadores';
 
 export class DisponibilidadeQuery {
-  @ApiProperty({ example: '2026-11', description: 'Mês (YYYY-MM)' })
+  @ApiProperty({ example: '2027-03', description: 'Mês (YYYY-MM)' })
   @IsMes()
   mes!: string;
 

@@ -144,6 +144,10 @@ describe('DELETE /api/agendamentos/:id', () => {
   });
 
   it.each(['abc', '1.5'])('id "%s" inválido devolve 400', async (id) => {
-    expect((await cancelar(id)).status).toBe(400);
+    const res = await cancelar(id);
+    expect(res.status).toBe(400);
+    expect(res.body).toMatchObject({
+      message: 'id deve ser um número inteiro',
+    });
   });
 });

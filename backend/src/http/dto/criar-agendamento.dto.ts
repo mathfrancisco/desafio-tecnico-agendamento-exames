@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
-import { IsInt, IsPositive, IsString, Length } from 'class-validator';
+import { IsInt, IsPositive, IsString, Length, Matches } from 'class-validator';
 import { IsDataHoraReal } from './validadores';
 
 export class CriarAgendamentoDto {
@@ -8,7 +8,8 @@ export class CriarAgendamentoDto {
     example: 'Maria Silva',
     minLength: 3,
     maxLength: 100,
-    description: 'Nome do paciente, sem espaços nas pontas',
+    description:
+      'Nome do paciente, sem espaços nas pontas nem caracteres de controle (quebra de linha, tab)',
   })
   @Transform(({ value }: { value: unknown }) =>
     typeof value === 'string' ? value.trim() : value,
@@ -16,6 +17,10 @@ export class CriarAgendamentoDto {
   @IsString({ message: 'pacienteNome deve ser um texto' })
   @Length(3, 100, {
     message: 'pacienteNome deve ter entre 3 e 100 caracteres',
+  })
+  @Matches(/^\P{Cc}*$/u, {
+    message:
+      'pacienteNome não pode ter quebra de linha nem caracteres de controle',
   })
   pacienteNome!: string;
 
@@ -30,7 +35,7 @@ export class CriarAgendamentoDto {
   medicoId!: number;
 
   @ApiProperty({
-    example: '2026-11-03T08:00',
+    example: '2027-03-02T08:00',
     description:
       'Início na hora local da clínica (America/Sao_Paulo); precisa ser um horário da grade do médico',
   })

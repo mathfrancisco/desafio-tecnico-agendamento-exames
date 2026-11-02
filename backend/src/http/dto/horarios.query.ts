@@ -4,7 +4,7 @@ import { IsInt, IsPositive } from 'class-validator';
 import { IsDataReal } from './validadores';
 
 export class HorariosQuery {
-  @ApiProperty({ example: '2026-11-03', description: 'Data (YYYY-MM-DD)' })
+  @ApiProperty({ example: '2027-03-02', description: 'Data (YYYY-MM-DD)' })
   @IsDataReal()
   data!: string;
 

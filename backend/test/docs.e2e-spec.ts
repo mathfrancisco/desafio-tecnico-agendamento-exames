@@ -17,6 +17,7 @@ describe('Swagger em /api/docs', () => {
     const res = await http(app).get('/api/docs');
     expect(res.status).toBe(200);
     expect(res.headers['content-type']).toMatch(/html/);
+    expect(res.text).toContain('<title>Agendamento de exames · API</title>');
   });
 
   it('documenta todas as rotas com os erros que cada uma devolve', async () => {

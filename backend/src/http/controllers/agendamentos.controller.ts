@@ -5,7 +5,6 @@ import {
   Get,
   HttpCode,
   Param,
-  ParseIntPipe,
   Post,
   Query,
 } from '@nestjs/common';
@@ -21,6 +20,7 @@ import { CancelarAgendamento } from '../../application/use-cases/cancelar-agenda
 import { CriarAgendamento } from '../../application/use-cases/criar-agendamento';
 import { ListarAgendamentos } from '../../application/use-cases/listar-agendamentos';
 import { ApiErros } from '../api-erros';
+import { parseId } from '../parse-id.pipe';
 import { CriarAgendamentoDto } from '../dto/criar-agendamento.dto';
 import { ListarAgendamentosQuery } from '../dto/listar-agendamentos.query';
 import { AgendamentoResposta } from '../dto/respostas';
@@ -67,7 +67,7 @@ export class AgendamentosController {
   @ApiParam({ name: 'id', example: 1 })
   @ApiNoContentResponse({ description: 'Cancelado' })
   @ApiErros(400, 404, 422)
-  cancelar(@Param('id', ParseIntPipe) id: number) {
+  cancelar(@Param('id', parseId('id')) id: number) {
     this.cancelarAgendamento.executar(id);
   }
 }

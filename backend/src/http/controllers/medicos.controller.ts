@@ -1,4 +1,4 @@
-import { Controller, Get, Param, ParseIntPipe, Query } from '@nestjs/common';
+import { Controller, Get, Param, Query } from '@nestjs/common';
 import {
   ApiOkResponse,
   ApiOperation,
@@ -9,6 +9,7 @@ import { ConsultarDisponibilidade } from '../../application/use-cases/consultar-
 import { ConsultarHorarios } from '../../application/use-cases/consultar-horarios';
 import { ListarMedicos } from '../../application/use-cases/listar-medicos';
 import { ApiErros } from '../api-erros';
+import { parseId } from '../parse-id.pipe';
 import { DisponibilidadeQuery } from '../dto/disponibilidade.query';
 import { HorariosQuery } from '../dto/horarios.query';
 import {
@@ -43,7 +44,7 @@ export class MedicosController {
   @ApiOkResponse({ type: HorariosResposta })
   @ApiErros(400, 404)
   horarios(
-    @Param('medicoId', ParseIntPipe) medicoId: number,
+    @Param('medicoId', parseId('medicoId')) medicoId: number,
     @Query() { data, exameId }: HorariosQuery,
   ) {
     return this.consultarHorarios.executar(medicoId, exameId, data);
@@ -59,7 +60,7 @@ export class MedicosController {
   @ApiOkResponse({ type: DisponibilidadeResposta })
   @ApiErros(400, 404)
   disponibilidade(
-    @Param('medicoId', ParseIntPipe) medicoId: number,
+    @Param('medicoId', parseId('medicoId')) medicoId: number,
     @Query() { mes, exameId }: DisponibilidadeQuery,
   ) {
     return this.consultarDisponibilidade.executar(medicoId, exameId, mes);

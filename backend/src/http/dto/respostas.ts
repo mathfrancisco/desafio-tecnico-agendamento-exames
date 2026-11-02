@@ -55,7 +55,7 @@ export class HorariosResposta {
   @ApiProperty({ example: 20 })
   exameId!: number;
 
-  @ApiProperty({ example: '2026-11-03' })
+  @ApiProperty({ example: '2027-03-02' })
   data!: string;
 
   @ApiProperty({ type: [IntervaloResposta] })
@@ -63,7 +63,7 @@ export class HorariosResposta {
 }
 
 export class DiaDisponibilidadeResposta {
-  @ApiProperty({ example: '2026-11-03' })
+  @ApiProperty({ example: '2027-03-02' })
   data!: string;
 
   @ApiProperty({ example: 12, description: 'Horários livres naquele dia' })
@@ -77,7 +77,7 @@ export class DisponibilidadeResposta {
   @ApiProperty({ example: 20 })
   exameId!: number;
 
-  @ApiProperty({ example: '2026-11' })
+  @ApiProperty({ example: '2027-03' })
   mes!: string;
 
   @ApiProperty({
@@ -100,11 +100,11 @@ export class AgendamentoResposta {
   @ApiProperty({ example: 1 })
   medicoId!: number;
 
-  @ApiProperty({ example: '2026-11-03T08:00' })
+  @ApiProperty({ example: '2027-03-02T08:00' })
   inicio!: string;
 
   @ApiProperty({
-    example: '2026-11-03T08:40',
+    example: '2027-03-02T08:40',
     description: 'inicio + duração do exame',
   })
   fim!: string;

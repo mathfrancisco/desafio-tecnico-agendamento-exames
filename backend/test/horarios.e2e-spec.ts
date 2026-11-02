@@ -81,5 +81,10 @@ describe('GET /api/medicos/:medicoId/horarios', () => {
       '/api/medicos/abc/horarios?data=2026-11-03&exameId=20',
     );
     expect(res.status).toBe(400);
+    expect(res.body).toEqual({
+      statusCode: 400,
+      error: 'Bad Request',
+      message: 'medicoId deve ser um número inteiro',
+    });
   });
 });
